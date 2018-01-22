@@ -67,7 +67,7 @@
 \usepackage{setspace}
 \doublespacing
 
-\title{Review for Write Behind Logging}
+\title{Review for Write Behind Logging (WBL)}
 \author{Isaak Cherdak}
 %\date{} %blank date
 
@@ -78,14 +78,36 @@
 \section{How does the author's approach or solution improve on previous
 approaches to the problem that they are solving?}
 
+The author determines that Write Ahead Logging (WAL) is no longer the best
+method for Data Base Management System (DBMS) consistency with the advent of
+byte-addressable NVM (BNVM). Specifically, this previous approach was based off
+the technologies available prior to BNVM. In response, the author introduces
+WBL. In other words, this is more of a modern replacement than an improvement.
+
 \section{Why is this work important?}
+
+This paper is a milestone in technological change. It marks a time where DBMSs
+will have access to a new technology: byte-addressable NVM. Further, it
+discusses some of the important new considerations that must be made when
+effectively making use of NVM as well as describing a new consistency method to
+replace WAL: WBL.
 
 \section{Provide 3+ comments/questions}
 
 \begin{itemize}
-  \item one
-  \item two
-  \item three
+  \item Are there any systems making use of WBL commercially today? I am sure
+    some companies have the money to afford BNVM today.
+  \item The evaluation section of this paper mentioned some specific NVM latency
+    timings which I believe may have introduced inaccuracies into the results.
+    Firstly, BNVM latencies are improving. In addition, intel has a pmem
+    utilization library called PMDK (formerly called NVML) that handles these
+    latencies for you and has it's own set of persistent memory allocation
+    mechanics and transactions that it provides. I wonder how significant the
+    change to the results may be if these two things are integrated/reconsidered
+    in this paper.
+  \item The results don't seem to reflect what I expected. It seems that the
+    performance of WAL is comparable to WBL in general performance. Only
+    recovery time is significantly better in WBL accross the board.
 \end{itemize}
 
 \end{document}
