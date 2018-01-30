@@ -1,0 +1,104 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}                     % Dummytext
+\usepackage{hyperref}
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{tikz-qtree}
+\usepackage{tikz}
+\usepackage[linguistics]{forest}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}% filled box
+\newcommand*{\QEDB}{\hfill\ensuremath{\square}}% unfilled box
+
+% dem nice tables
+\usepackage[hmargin=2cm,top=4cm,headheight=65pt,footskip=65pt]{geometry}
+\usepackage{fmtcount} % for \ordinalnum
+\usepackage{array,multirow}
+\usepackage{tabularx}
+\usepackage{lastpage}
+
+
+% add a special collumn type
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+
+%header/footer stuff
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%note that if you do not do these blank ones, the package defaults to something
+%you may not want in your header or footer
+\lhead{Review for Bigtable}
+\chead{}
+\rhead{\today}
+\lfoot{Isaak Cherdak}
+\cfoot{}
+\rfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\usepackage[english]{babel}
+\emergencystretch=1pt
+\usepackage[justification=centering]{caption}
+\graphicspath{{Pictures/} }
+
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+\usepackage{setspace}
+\doublespacing
+
+\title{Review for Bigtable}
+\author{Isaak Cherdak}
+%\date{} %blank date
+
+\begin{document}
+
+\maketitle
+
+\section{How does the author's approach or solution improve on previous
+approaches to the problem that they are solving?}
+
+Bigtable's design choice of replacing the relational data model with a dynamic
+layout and format control model resulted in the ability to better reason about
+data locality of storage as well as both column and row indexing. Previous
+implementations were mostly concerned with the performance of basic get and put
+functionality so Bigtable improves on features provided by databases.
+
+\section{Why is this work important?}
+
+It was one of the first examples of a database system that allowed a large
+variety of indexing schemes on multiple dimensions (key, value, timestamp).
+
+\section{Provide 3+ comments/questions}
+
+\begin{itemize}
+  \item Google indeed loaded a lot of technology, especially their own, into
+    Bigtable. Even GFS, the filesystem used in Bigtable, has it's own paper.
+  \item I really like the idea to use Chubby as both a method for consistency
+    and a monitoring tool as described by the Building Blocks and lessons
+    sections respectively.
+  \item I definitely sympathize about the lesson regarding simple code. Just as
+    the system should be able to scale, so should the code base.
+\end{itemize}
+
+\end{document}
