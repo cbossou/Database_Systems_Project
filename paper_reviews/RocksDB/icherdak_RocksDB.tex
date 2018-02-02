@@ -1,0 +1,115 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}                     % Dummytext
+\usepackage{hyperref}
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{tikz-qtree}
+\usepackage{tikz}
+\usepackage[linguistics]{forest}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}% filled box
+\newcommand*{\QEDB}{\hfill\ensuremath{\square}}% unfilled box
+
+% dem nice tables
+\usepackage[hmargin=2cm,top=4cm,headheight=65pt,footskip=65pt]{geometry}
+\usepackage{fmtcount} % for \ordinalnum
+\usepackage{array,multirow}
+\usepackage{tabularx}
+\usepackage{lastpage}
+
+
+% add a special collumn type
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+
+%header/footer stuff
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%note that if you do not do these blank ones, the package defaults to something
+%you may not want in your header or footer
+\lhead{Review for RocksDB}
+\chead{}
+\rhead{\today}
+\lfoot{Isaak Cherdak}
+\cfoot{}
+\rfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\usepackage[english]{babel}
+\emergencystretch=1pt
+\usepackage[justification=centering]{caption}
+\graphicspath{{Pictures/} }
+
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+\usepackage{setspace}
+\doublespacing
+
+\title{Review for RocksDB}
+\author{Isaak Cherdak}
+%\date{} %blank date
+
+\begin{document}
+
+\maketitle
+
+\section{How does the author's approach or solution improve on previous
+approaches to the problem that they are solving?}
+
+RocksDB is more concerned with space optimization than throughput and latency.
+More specifically, once throughput and latency achieve acceptable levels the
+primary focus becomes on space utilization. This is especially important for
+Facebook which has to handle data for millions of users of their website.
+
+\section{Why is this work important?}
+
+RocksDB really brought the LSM tree to light in ways that were not done before.
+The primary difference that RocksDB mentions about the usefulness of the LSM
+tree is on space optimization and decreased write amplification rather than the
+previously known benefit of minimized random writes to storage. It's not so much
+that the latter is no longer true, but rather that the former was found to be a
+much more useful benefit through the development of RocksDB.
+
+\section{Provide 3+ comments/questions}
+
+\begin{itemize}
+  \item It's intersting that even though the focus is on space optimization,
+    RocksDB performs better in throughput and latency in some ways than other
+    database systems whose concerns with latency and throughput are more
+    primary. Even so, RocksDB used about 50\% of the storage space that InnoDB
+    needed for the same data.
+  \item The first graph for 1B Vertices/50GB DRAM seems to have strange numbers
+    compared to that of the graph to the left. How is it that having vertices 6
+    orders of magnitude smaller would increase space utilization by an order of
+    magnitude?
+  \item The paper discusses the use of Bloom Filters in a very hand-wavy
+    approach: switching from saying that it saves time on average case to a
+    discussion about prefix filters or space utilization/performance tradeoffs
+    of lowest level bloom filters. Particularly in the discussion of space
+    tradeoffs for the last level bloom filter: isn't this more a concern of the
+    ratio of last level bloom filter space to total amount of available space?
+\end{itemize}
+
+\end{document}
