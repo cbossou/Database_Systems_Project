@@ -79,10 +79,14 @@
 \section{How does the author's approach or solution improve on previous
 approaches to the problem that they are solving?}
 
-Section 3.1...
+It does the same thing many other systems have done: try to be compatible with
+SQL APIs.
 
 \section{Why is this work important?}
 
+Because of how it applies RDDs to a wide variety of applications. This ended up
+being really useful in research like Generalized Online Aggregation and
+Computational Genomics.
 
 \section{Provide 3+ comments/questions}
 
@@ -91,9 +95,15 @@ Section 3.1...
     reality they are features described from the RDD paper for any RDD based
     system. As an example, this paper mentions that RDDs are evaluated lazily
     which I think should be left to the reader since this paper certainly
-    doesn't discuss the basics of RDDs anyway: it just states some random facts.
-  \item Thing 2
-  \item THing 3
+    doesn't discuss the basics of RDDs anyway: it just states some tangentially
+    related facts.
+  \item After reading this paper, I honestly do not see what unique info it
+    brings. Is this a more extreme example of simply getting to publish a paper
+    because it describes a popular and actuallyt implemented system?
+  \item Spark SQL didn't perform much better than Shark and Impala. Even so, not
+    a lot of variety was given and the degree of difference wasn't really
+    provided. This is dissapointing as all the previous sections are basically
+    describing concepts from other papers.
 \end{itemize}
 
 \end{document}
