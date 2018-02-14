@@ -79,12 +79,25 @@
 
 \section*{Overview}
 
-\todo[inline]{Need to describe plans in more detail. Especially need to discuss
-in regards what/how exactly I plan to optimize/tune (considering trying to run
-parts of DB on NVM), what my plans for my application are (structure, scope of
-application, what it will do, etc.), and the size/scope of the tests I plan to
-do} Currently, I am interested in the prospect of working on characterization of
-use cases and potential optimizations of RocksDB.
+I am interested in the prospect of working on characterization of use cases and
+potential optimizations of RocksDB. I plan to try to run varying
+put/get/update/delete operations on a local RocksDB instance. For optimizations
+I am especially interested in converting RocksDB to run on NVRAM. Note that I
+have experience emulating and utilizing NVRAM using intel PMDK library. The
+size/scope of the operations will depend on what my computer is capable of
+handling while also taking a reasonable amount of time per test. I don't believe
+I could accurately predict what this would be but in the past I have used up to
+40000 for insertions on NVRAM based List, Vector, B-Tree and LSM-Tree data
+structures whose data size was one or two 64 bit unsigned integers. In other
+words, my upper limit is probably on 40000 inserts of two 64 bit unsigned
+integers. The benchmark application itself will simply run these tests for
+multiple trials and time each group of operations and write them to respective
+files. Multiple tests will be run for different numbers of operations up to some
+maximum. An analysis will be performed using pilot, which is a data analysis
+tool developed by my lab, the SSRC. These average results (perhaps with error
+bars included) will then be plotted using Matplotlib. Statistics recorded will
+at minimum include runtimes for various operations as well as various
+memory/storage overheads associated with different RocksDB system sizes.
 
 \section*{Level A}
 
