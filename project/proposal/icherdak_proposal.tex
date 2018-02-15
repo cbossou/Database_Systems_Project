@@ -77,46 +77,119 @@
 
 \pagebreak
 
-\section*{Overview}
+\section{Overview}
+\label{sec:overview}
 
 I am interested in the prospect of working on characterization of use cases and
 potential optimizations of RocksDB. I plan to try to run varying
-put/get/update/delete operations on a local RocksDB instance. For optimizations
-I am especially interested in converting RocksDB to run on NVRAM. Note that I
-have experience emulating and utilizing NVRAM using intel PMDK library. The
-size/scope of the operations will depend on what my computer is capable of
-handling while also taking a reasonable amount of time per test. I don't believe
-I could accurately predict what this would be but in the past I have used up to
-40000 for insertions on NVRAM based List, Vector, B-Tree and LSM-Tree data
-structures whose data size was one or two 64 bit unsigned integers. In other
-words, my upper limit is probably on 40000 inserts of two 64 bit unsigned
-integers. The benchmark application itself will simply run these tests for
-multiple trials and time each group of operations and write them to respective
-files. Multiple tests will be run for different numbers of operations up to some
-maximum. An analysis will be performed using pilot, which is a data analysis
-tool developed by my lab, the SSRC. These average results (perhaps with error
-bars included) will then be plotted using Matplotlib. Statistics recorded will
-at minimum include runtimes for various operations as well as various
-memory/storage overheads associated with different RocksDB system sizes.
+put/get/update/delete operations on a local RocksDB instance.
 
-\section*{Level A}
+\subsection{Background Experience}
+\label{subsec:background}
+
+I have experience setting up Benchmarks in C/C++ for various data structures.
+Specifically, I have been able to send multiple experiment trials to a file and
+have used pilot, a tool made by the SSRC (my research lab), to generate
+analytical information about the results (such as standard deviation, average,
+etc). I have also been able to graph these results using matplotlib. I plan to
+apply this experience to design a similar process of running experiments on
+RocksDB.
+
+I previously did experiments on four different data structures: Singly Linked
+List, Vector, B-Tree, and LSM-Tree. The first three were written by myself in a
+consistent manner and the LSM-Tree was adapted based off one created by a
+Harvard PhD student. The benchmark was at best able to run 40000 inserts and
+40000 get calls with 100 trials in approximately 30 seconds. The order of
+inserts and get calls wasn't the same but the way they were run differed
+depending on the data structure. The hardware setup was as described in
+\ref{subsubsec:test_hw} as well as my laptop which had comparable results. Test
+results included aggregate runtime of all inserts, aggregate runtime of all
+calls to get, and total in-memory size at the end of all insertions. It should
+be noted that I was able to run these experiments without having any issues with
+memory / storage usage (runtime was main bottleneck) when using an 800 MB NVRAM
+pool. Valgrind reported approximately 25 GB of dynamic memory allocating/freeing
+over the course of all trials/experiments in the case of 40000 inserts/100
+trials.
+
+\subsection{Benchmark}
+
+A benchmark will be designed in C++. This benchmark will run a variety of
+different tests with varying ratios of operations (put/get/update/delete). A
+single experiment is defined as a single group of operations that is run with at
+least 100 trials. The purpose of doing multiple trials is to ensure accuracy of
+results.
+
+\subsubsection{Characterization of tests}
+\label{subsubsec:characterization_tests}
+
+I will be running various ratios of each operation for different experiments. I
+plan to vary read:write:delete and read:update:delete ratios. I am aiming to
+have at least eight graphs of different scenarios of these variances. Some I
+have planned are (these are planned estimates) for read:write:delete:: (high hit
+rate) 1000:10:5, 10:1000:500, (low hit rate) 1000:10:5, 10:1000:500; and for
+update:write:delete:: (high hit rate) 1000:10:5, 10:1000:500, (low hit rate)
+1000:10:5, 10:1000:500. These are currently just some ideas I have and can
+easily come up with different variations as my experiments help me get an idea
+of what information may be interesting. The limit on the number of operations /
+memory usage is dependant on that which is described in
+\ref{subsubsec:max_threshold}.
+
+\subsubsection{Test Hardware}
+\label{subsubsec:test_hw}
+
+I will be running these tests on a virtual machine on my home desktop. My home
+desktop has a AMD Ryzen R7 1700 CPU, 32 GB 3000MHz DDR4 RAM and a 500 GB primary
+storage SSD. The virtual machine will be using (TODO: double check this) 16
+CPU cores, 16 GB RAM, and 100 GB of my SSD. Not all 16 GB of RAM will
+necessarily be available depending on experiments related to NVRAM which are
+discussed in \ref{subsec:opt_rocksdb}.
+
+\subsubsection{Maximum Threshold}
+\label{subsubsec:max_threshold}
+
+The range of tests will be as large as possible. Every experiment will take no
+longer than 1 minute: any experiment that largely exceeds this amount of time
+will not be kept. Note that every experiment will include at least 100 trials
+and the 1 minute requirement includes all trials. Tests that complete in
+significantly less than 1 minute will accordingly be set to run a larger number
+of trials. In addition, obviously any tests that require more than my available
+pool of memory and storage will not be run. An idea of what this maximum
+threshold may be, will be more clear after reading \ref{subsec:background}.
+
+\subsection{Optimization of RocksDB}
+\label{subsec:opt_rocksdb}
+
+I will primarily be trying to optimize RocksDB by making it utilize NVRAM
+instead of traditional DRAM. This will be done by using intel's guide to
+emulating NVRAM
+\footnote{
+  \href{https://software.intel.com/en-us/articles/how-to-emulate-persistent-memory-on-an-intel-architecture-server/}
+  {Intel NVRAM Emulation Guide}}.
+I plan to use 4 GB of RAM as NVRAM. Please refer to \ref{subsubsec:test_hw} to
+understand the underlying hardware setup of the system. I will use intel's PMDK
+library to utilize the the NVRAM. Specifically, I will be making use of the
+libpmemobj\footnote{\href{http://pmem.io/pmdk/libpmemobj/}
+{PMDK pmemobj documentation}}.
+
+\section{Level A}
 
 Characterization of major use cases of RocksDB and discussion of optimizations
-that would further increase the range of use cases.
+that would further increase the range of use cases. This involves running
+various benchmarks and analysis of the results as decribed in
+\ref{subsubsec:characterization_tests}.
 
-\section*{Level B}
+\section{Level B}
 
-Chracterization of major use cases of RocksDB and the additional range of use
-cases as a result of implementations of optimizations to RocksDB done as part of
-the project.
+This involves the work proposed in Level A as well as tests on an optimized
+version of RocksDB. This optimization would likely be a modified version of
+RocksDB so that it runs on NVRAM as described in \ref{subsec:opt_rocksdb}.
 
-\section*{Level C}
+\section{Level C}
 
-Comprehensive comparison between RocksDB and one other DB library (i.e LevelDB)
-as well as implementation of optimizations to both that further demonstrate the
-strengths and weaknesses, particularly of RocksDB. This would also include a
-characterization of major use cases of RocksDB as well as the increased range of
-use cases as a result of any RocksDB optimizations implemented as part of the
-project.
+This would involve Level A, B, and the application of Levels A and B to LevelDB.
+Finally, a comparison of the use cases between the two systems which will simply
+include the Level A analysis of both systems. This will also include a
+discussion of the cost-benefit of some of the features added to RocksDB which
+LevelDB did not have.
 
 \end{document}
