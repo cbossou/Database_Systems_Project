@@ -1,0 +1,104 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}                     % Dummytext
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{tikz-qtree}
+\usepackage{tikz}
+\usepackage[linguistics]{forest}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}% filled box
+\newcommand*{\QEDB}{\hfill\ensuremath{\square}}% unfilled box
+
+% dem nice tables
+\usepackage[hmargin=2cm,top=4cm,headheight=65pt,footskip=65pt]{geometry}
+\usepackage{fmtcount} % for \ordinalnum
+\usepackage{array,multirow}
+\usepackage{tabularx}
+\usepackage{lastpage}
+
+
+% add a special collumn type
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+
+%header/footer stuff
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%note that if you do not do these blank ones, the package defaults to something
+%you may not want in your header or footer
+\lhead{Review for F1}
+\chead{}
+\rhead{\today}
+\lfoot{Isaak Cherdak}
+\cfoot{}
+\rfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\usepackage[english]{babel}
+\emergencystretch=1pt
+\usepackage[justification=centering]{caption}
+\graphicspath{{Pictures/} }
+
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+\usepackage{setspace}
+\doublespacing
+
+\title{Review for F1}
+\author{Isaak Cherdak}
+%\date{} %blank date
+
+\begin{document}
+
+\maketitle
+
+\section{How does the author's approach or solution improve on previous
+approaches to the problem that they are solving?}
+
+Google wanted a system that could far outscale their previous systems like
+BigTable. Specifically, it was an improvement on Scalability, Availability,
+Consistency, and Usability: all of which are noted as mutually exclusive.
+
+\section{Why is this work important?}
+
+It shows an effective real world deployment and improvement of a previous
+system.
+
+\section{Provide 3+ comments/questions}
+
+\begin{itemize}
+  \item Hierarchical Clustered architecture is interesting for its properties of
+    locality which seem like a very good fit for Google's use case.
+  \item The usability provided by F1 is very impressive as it is a hybrid of
+    sorts.
+  \item This is an example of a paper that describes an actual running system
+    and is seemingly novel. In contrast, many recent paper seemed to only
+    describe the implementation of their system/results but not how they were
+    novel or improved significantly on previous systems
+\end{itemize}
+
+\end{document}
