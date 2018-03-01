@@ -17,7 +17,13 @@ using namespace std;
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-#define MAXIMUM_BASE_SIZE 1
+#ifndef MAXIMUM_BASE_SIZE
+#define MAXIMUM_BASE_SIZE 100
+#endif
+
+#ifndef NUMTRIALS
+#define NUMTRIALS 1000
+#endif
 
 void eexit(const char *fmt, ...);
 
