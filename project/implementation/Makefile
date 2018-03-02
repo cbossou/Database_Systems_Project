@@ -11,6 +11,7 @@ CPPCOMP = -c
 CPPLINK = -o
 CPPCOMPFLAGS = --std=c++11 -Wall -Werror -pedantic
 CPPLINKFLAGS = -lboost_filesystem -lboost_system
+RESULTSDIR = results
 
 all: $(EXE)
 
@@ -24,6 +25,6 @@ clean:
 	rm -f $(OBJ)
 
 spotless: clean
-	rm -f $(EXE)
+	rm -rf $(EXE) $(RESULTSDIR)
 
 .PHONY: all clean spotless
