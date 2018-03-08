@@ -88,12 +88,10 @@ vector<tuple<string, int>> *seq_miss_delete(int size, int average) {
 vector<tuple<string, int>> *rnd_hit_read(int size, int average) {
   vector<int> *v = make_rnd_data(size, average);
   vector<tuple<string, int>> *run_results = new vector<tuple<string, int>>();
-
   for(int i = 0; i < (int) v->size(); i++) {
     int result = v->at(i);
     run_results->push_back(make_tuple(string("test") + to_string(i), result));
   }
-
   delete(v);
   return run_results;
 }
