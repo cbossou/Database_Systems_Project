@@ -3,4 +3,4 @@ if [[ ! -e "$1" ]]; then
   exit 1
 fi
 
-cat $1 | pilot analyze -i 1 - > $(ls $1 | cut -d '.' -f 1).csv
+cat $1 | pilot analyze -i 1 - > $(ls $1 | cut -d '.' -f 1).txt
