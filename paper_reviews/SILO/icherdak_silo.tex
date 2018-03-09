@@ -83,17 +83,25 @@
 \section{How does the author's approach or solution improve on previous
 approaches to the problem that they are solving?}
 
-
+SILO provides serializability guarantees like many other systems but without the
+usual scalability bottlenecks that arrize in these scenarios.
 
 \section{Why is this work important?}
 
+Provides a commit protocol that has serializability guarantees while avoiding
+all shared-memory writes.
 
 \section{Provide 3+ comments/questions}
 
 \begin{itemize}
-  \item TODO
-  \item TODO
-  \item TODO
+  \item This system is basically a follow up on DORA. How is it an improvement
+    over DORA?
+  \item It's really impressive that it scales so well in larger amounts of
+    parallelism. Many systems we have seen aren't able to accomplish this due to
+    other complexities in their design.
+  \item This was a really great paper. However, I am concerned about the lack of
+    comparison with other systems. Why would anybody omit comparisons to this
+    degree for a system that claims to be an improvement over others?
 \end{itemize}
 
 \end{document}
