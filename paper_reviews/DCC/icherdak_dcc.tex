@@ -90,15 +90,21 @@ this goal, the authors made a system called Deneva used to evaluate various DBMS
 
 \section{Why is this work important?}
 
-This paper gives an analysis of the tradeoffs of distributed concurency control
+This paper gives an analysis of the trade-offs of distributed concurency control
 in modern cloud computing to offer the best solutions for scalability.
 
 \section{Provide 3+ comments/questions}
 
 \begin{itemize}
-  \item TODO
-  \item TODO
-  \item TODO
+  \item It would be nice if there was some sort of way to determine "how
+    distributed" a database management system should be, based off its use case,
+    to be optimal.
+  \item Partitioning the database is a clever way to isolate investigation of
+    scalability bottlenecks to the concurrency control system since more
+    partitions mean that more time must be spent performing concurrency control
+    to ensure consistency between them.
+  \item The graphs are really nice in this paper. Also, what's with "other" on
+    figure 8? It takes up most of the results.
 \end{itemize}
 
 \end{document}
