@@ -22,6 +22,8 @@
 
 using namespace std;
 
+int max_size, num_trials;
+
 int benchmark_wrapper(int size, int average, string bench_name,
     vector<tuple<string, int>> *(*bench_func)(int size, int average)) {
   // create a folder for these tests in results
@@ -29,7 +31,7 @@ int benchmark_wrapper(int size, int average, string bench_name,
   boost::filesystem::create_directory(dir);
   FILE *res_file = fopen((TEST_PATH_STR(bench_name) + bench_name +
         to_string(size) + string(".csv")).c_str(), "w");
-  for (int i = 0; i < NUMTRIALS; i++) {
+  for (int i = 0; i < num_trials; i++) {
     vector<tuple<string, int>> *run_results = bench_func(size, average);
     if(i == 0) { // insert header line of csv
       for (uint32_t iter = 0; iter < run_results->size(); iter++) {
@@ -55,12 +57,28 @@ int benchmark_wrapper(int size, int average, string bench_name,
 }
 
 int main(int argc, char **argv) {
+
+  max_size = MAXIMUM_BASE_SIZE;
+  num_trials = NUMTRIALS;
+
+  int c;
+  while((c = getopt(argc, argv, "s:t:")) != -1) {
+    switch(c) {
+      case 's':
+        max_size = atoi(optarg);
+        break;
+      case 't':
+        num_trials = atoi(optarg);
+        break;
+    }
+  }
+
   // create the results directory
   boost::filesystem::path dir(RESULT_PATH);
   boost::filesystem::create_directory(dir);
 
   // run the benchmarks
-  for (int i = 1; i <= MAXIMUM_BASE_SIZE; i++) {
+  for (int i = 1; i <= max_size; i++) {
     benchmark_wrapper(i, i/2, TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
     benchmark_wrapper(i, i/2, TEST_STR(rnd_hit_read), TEST_ADDR(rnd_hit_read));
   }

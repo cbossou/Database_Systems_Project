@@ -22,7 +22,7 @@ CONFIG_FILE = $(INSTALL_PATH)/include/rocksdb/make_config.mk
 
 #ifeq ("$(wildcard $(CONFIG_FILE))","")
 ifneq ("$(CONFIG_FILE)","")
-	include $(INSTALL_PATH)/include/rocksdb/make_config.mk
+	include $(CONFIG_FILE)
 else
   $(error Rocksdb make configuration not yet generated. Please install rocksdb)
 endif
@@ -52,7 +52,7 @@ ROCKSDBLINKFLAGS = $(INSTALL_PATH)/lib/librocksdb.a -I$(INSTALL_PATH)/include \
 CPPSRCEXT = cc
 CPPHEADEXT = h
 MAIN = Main
-MODULES = ExtraUtil BenchMark compaction_filter_example
+MODULES = ExtraUtil BenchMark
 HEADERS = $(MODULES:%=%.$(CPPHEADEXT))
 SRC = $(MAIN:%=%.$(CPPSRCEXT)) $(MODULES:%=%.$(CPPSRCEXT))
 OBJ = $(SRC:%.$(CPPSRCEXT)=%.o)

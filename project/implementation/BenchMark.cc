@@ -34,10 +34,14 @@ vector<tuple<string, int>> *seq_hit_read(int size, int average) {
   // do MAXIMUM_BASE_SIZE / 2 delete
   // free it all
 
+  TransactionDB* dbptr;
+  TransactionDBOptions dbopts;
+  rocks_init(&dbptr, &dbopts);
   for(int i = 0; i < (int) v->size(); i++) {
     int result = v->at(i);
     run_results->push_back(make_tuple(string("test") + to_string(i), result));
   }
+  rocks_deinit(&dbptr, &dbopts);
 
   delete(v);
   return run_results;

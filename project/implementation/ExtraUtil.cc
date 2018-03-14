@@ -1,5 +1,7 @@
 #include "ExtraUtil.h"
 
+using namespace std;
+
 // prints error to stderr and then exits program
 // prints using red color
 void eexit(const char *fmt, ...){
@@ -50,4 +52,31 @@ string trimmed(string orig, string delimiters) {
   }
   int length = end - begin + 1;
   return orig.substr(begin, length);
+}
+
+using namespace rocksdb;
+
+string DBPath = "/tmp/RocksBench";
+
+void rocks_init(TransactionDB** dbptr, TransactionDBOptions *pdbopts) {
+  Options options;
+  options.create_if_missing = true;
+  Status s = TransactionDB::Open(options, *pdbopts, DBPath, dbptr);
+  assert(s.ok());
+}
+
+void rocks_deinit(TransactionDB** dbptr, TransactionDBOptions *pdbopts) {
+  Options options;
+  options.create_if_missing = true;
+  delete *dbptr;
+  Status s = DestroyDB(DBPath, options);
+  assert(s.ok());
+}
+
+void rocks_put() {
+
+}
+
+void rocks_get() {
+
 }

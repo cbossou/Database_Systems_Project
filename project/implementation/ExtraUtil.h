@@ -7,6 +7,12 @@
 #include <algorithm>
 #include <string>
 
+#include <rocksdb/db.h>
+#include <rocksdb/options.h>
+#include <rocksdb/slice.h>
+#include <rocksdb/utilities/transaction.h>
+#include <rocksdb/utilities/transaction_db.h>
+
 using namespace std;
 
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -33,5 +39,11 @@ void normal_printf(const char *fmt, ...);
 
 // returns the trimmed version of this string based off delimiters
 string trimmed(string orig, string delimiters);
+
+using namespace rocksdb;
+
+void rocks_init(TransactionDB** dbptr, TransactionDBOptions *pdbopts);
+
+void rocks_deinit(TransactionDB** dbptr, TransactionDBOptions *pdbopts);
 
 #endif
