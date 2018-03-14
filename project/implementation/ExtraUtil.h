@@ -23,14 +23,6 @@ using namespace std;
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-#ifndef MAXIMUM_BASE_SIZE
-#define MAXIMUM_BASE_SIZE 100
-#endif
-
-#ifndef NUMTRIALS
-#define NUMTRIALS 1000
-#endif
-
 void eexit(const char *fmt, ...);
 
 void warn_printf(const char *fmt, ...);
@@ -42,8 +34,12 @@ string trimmed(string orig, string delimiters);
 
 using namespace rocksdb;
 
-void rocks_init(TransactionDB** dbptr, TransactionDBOptions *pdbopts);
+void rocks_init();
 
-void rocks_deinit(TransactionDB** dbptr, TransactionDBOptions *pdbopts);
+void rocks_destroy();
+
+Status rocks_put(string key, string value);
+
+Status rocks_get(string key, string *pvalue);
 
 #endif

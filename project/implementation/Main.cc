@@ -20,19 +20,29 @@
 #define RESULT_NAME 0
 #define RESULT_VALUE 1
 
+#ifndef MAX_BASE_SIZE
+#define MAX_BASE_SIZE 1000
+#endif
+
+#ifndef MAX_NUM_TRIALS
+#define MAX_NUM_TRIALS 1000
+#endif
+
 using namespace std;
 
 int max_size, num_trials;
 
-int benchmark_wrapper(int size, int average, string bench_name,
-    vector<tuple<string, int>> *(*bench_func)(int size, int average)) {
+int benchmark_wrapper(int size, double average, string bench_name,
+    vector<tuple<string, double>> *(*bench_func)(int size, double average)) {
   // create a folder for these tests in results
   boost::filesystem::path dir(TEST_PATH(bench_name));
   boost::filesystem::create_directory(dir);
   FILE *res_file = fopen((TEST_PATH_STR(bench_name) + bench_name +
         to_string(size) + string(".csv")).c_str(), "w");
+  normal_printf("Running %d trials for %s(size=%d,average=%.3lf):\n",
+      num_trials, bench_name.c_str(), size, average);
   for (int i = 0; i < num_trials; i++) {
-    vector<tuple<string, int>> *run_results = bench_func(size, average);
+    vector<tuple<string, double>> *run_results = bench_func(size, average);
     if(i == 0) { // insert header line of csv
       for (uint32_t iter = 0; iter < run_results->size(); iter++) {
         fprintf(res_file, "%s%s",
@@ -44,34 +54,34 @@ int benchmark_wrapper(int size, int average, string bench_name,
       }
     }
     for (uint32_t iter = 0; iter < run_results->size(); iter++) {
-      fprintf(res_file, "%d%s", get<RESULT_VALUE>(run_results->at(iter)),
-            (iter == run_results->size() - 1 ? ",\n" : ","));
-      normal_printf("%d%s", get<RESULT_VALUE>(run_results->at(iter)),
+      fprintf(res_file, "%.3lf%s", get<RESULT_VALUE>(run_results->at(iter)),
             (iter == run_results->size() - 1 ? ",\n" : ","));
     }
-    normal_printf("\n========\n");
     delete(run_results);
   }
+  normal_printf("\n========\n");
   fclose(res_file);
   return 1;
 }
 
 int main(int argc, char **argv) {
 
-  max_size = MAXIMUM_BASE_SIZE;
-  num_trials = NUMTRIALS;
+  max_size = MAX_BASE_SIZE;
+  num_trials = MAX_NUM_TRIALS;
 
   int c;
   while((c = getopt(argc, argv, "s:t:")) != -1) {
     switch(c) {
       case 's':
-        max_size = atoi(optarg);
+        max_size = atoi(optarg) < max_size ? atoi(optarg) : max_size;
         break;
       case 't':
-        num_trials = atoi(optarg);
+        num_trials = atoi(optarg) < num_trials ? atoi(optarg) : num_trials;
         break;
     }
   }
+
+  rocks_init();
 
   // create the results directory
   boost::filesystem::path dir(RESULT_PATH);
@@ -79,9 +89,14 @@ int main(int argc, char **argv) {
 
   // run the benchmarks
   for (int i = 1; i <= max_size; i++) {
-    benchmark_wrapper(i, i/2, TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
-    benchmark_wrapper(i, i/2, TEST_STR(rnd_hit_read), TEST_ADDR(rnd_hit_read));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
+
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(rnd_hit_read), TEST_ADDR(rnd_hit_read));
   }
+
+  rocks_destroy();
 
   return 0;
 }
