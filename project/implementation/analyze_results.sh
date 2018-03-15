@@ -9,5 +9,6 @@ if [ ! -e "$1" ]; then
   exit 1
 fi
 
-cat $1 | pilot analyze -i 1 -f 0 - > $(ls $1 | cut -d '.' -f 1)_stdput.txt
-cat $1 | pilot analyze -i 1 -f 1 - > $(ls $1 | cut -d '.' -f 1)_stdget.txt
+cat $1 | pilot analyze -i 1 -f 0 - > $(ls $1 | cut -d '.' -f 1)_put.txt
+cat $1 | pilot analyze -i 1 -f 1 - > $(ls $1 | cut -d '.' -f 1)_get.txt
+cat $1 | pilot analyze -i 1 -f 2 - > $(ls $1 | cut -d '.' -f 1)_delete.txt

@@ -58,24 +58,25 @@ Status rocks_put(string key, string value) {
 }
 
 // put on to the current transaction before commit
-Status rocks_put_buffer() {
+Status rocks_put_buffer(string key, string value) {
   if (txn == NULL) return Status::Aborted("Couldn't Begin Transaction");
-  Status s = txn->Put("abc", "def");
-  //assert(s.ok());
+  Status s = txn->Put(key, value);
   return s;
 }
 
 // direct read from the database
 Status rocks_get(string key, string *pvalue) {
   Status s = dbptr->Get(ropts, key, pvalue);
-  //assert(s.IsNotFound());
   return s;
 }
 
 // read from the current transaction before commit
 Status rocks_get_buffer(string key, string *pvalue) {
-  string value;
   Status s = txn->Get(ropts, key, pvalue);
-  //assert(s.IsNotFound());
+  return s;
+}
+
+Status rocks_delete(string key) {
+  Status s = dbptr->SingleDelete(wopts, key);
   return s;
 }

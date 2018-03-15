@@ -15,8 +15,18 @@ Status rocks_init();
 
 Status rocks_destroy();
 
+Status rocks_commit_begin();
+
+Status rocks_commit_finish();
+
 Status rocks_put(string key, string value);
 
+Status rocks_put_buffer(string key, string value);
+
 Status rocks_get(string key, string *pvalue);
+
+Status rocks_get_buffer(string key, string *pvalue);
+
+Status rocks_delete(string key);
 
 #endif
