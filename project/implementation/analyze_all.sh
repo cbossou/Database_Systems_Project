@@ -1,5 +1,7 @@
+#!/bin/bash
 if [ ! -e results ]; then
   echo "please run RocksBench to generate results first"
+  exit 1
 fi
 
 results=$(ls results)

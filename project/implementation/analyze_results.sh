@@ -1,5 +1,7 @@
+#!/bin/bash
 if [ ! $# -eq 1 ]; then
   echo "Please provide a file to analyze"
+  exit 1
 fi
 
 if [ ! -e "$1" ]; then
