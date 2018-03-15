@@ -34,9 +34,9 @@ string trimmed(string orig, string delimiters);
 
 using namespace rocksdb;
 
-void rocks_init();
+Status rocks_init();
 
-void rocks_destroy();
+Status rocks_destroy();
 
 Status rocks_put(string key, string value);
 

@@ -21,7 +21,7 @@
 #define RESULT_VALUE 1
 
 #ifndef MAX_BASE_SIZE
-#define MAX_BASE_SIZE 1000
+#define MAX_BASE_SIZE 1000000
 #endif
 
 #ifndef MAX_NUM_TRIALS
@@ -42,6 +42,10 @@ int benchmark_wrapper(int size, double average, string bench_name,
   normal_printf("Running %d trials for %s(size=%d,average=%.3lf):\n",
       num_trials, bench_name.c_str(), size, average);
   for (int i = 0; i < num_trials; i++) {
+    Status s = rocks_init();
+    if (!s.ok()) {
+      eexit("Database creation failed\n");
+    }
     vector<tuple<string, double>> *run_results = bench_func(size, average);
     if(i == 0) { // insert header line of csv
       for (uint32_t iter = 0; iter < run_results->size(); iter++) {
@@ -58,6 +62,10 @@ int benchmark_wrapper(int size, double average, string bench_name,
             (iter == run_results->size() - 1 ? ",\n" : ","));
     }
     delete(run_results);
+    s = rocks_destroy();
+    if (!s.ok()) {
+      eexit("Can't destroy database\n");
+    }
   }
   normal_printf("\n========\n");
   fclose(res_file);
@@ -81,22 +89,19 @@ int main(int argc, char **argv) {
     }
   }
 
-  rocks_init();
-
   // create the results directory
   boost::filesystem::path dir(RESULT_PATH);
   boost::filesystem::create_directory(dir);
 
+  rocks_destroy(); // just in case it survived from a midway cutoff
+
   // run the benchmarks
-  for (int i = 1; i <= max_size; i++) {
+  for (int i = 1; i <= max_size; i *= 10) {
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
 
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(rnd_hit_read), TEST_ADDR(rnd_hit_read));
   }
-
-  rocks_destroy();
-
   return 0;
 }

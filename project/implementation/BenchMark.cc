@@ -30,7 +30,7 @@ vector<double> *make_rnd_data(int size, double average) {
 
 // sequential, high hit rate, read heavy
 vector<tuple<string, double>> *seq_hit_read(int size, double average) {
-  // FIXME EXAMPLE
+
   vector<double> *v = make_seq_data(size, average - size/2);
   vector<tuple<string, double>> *run_results =
     new vector<tuple<string, double>>();
@@ -48,10 +48,22 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
     time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
         (start_time.tv_sec * 1e6 + start_time.tv_usec);
   }
-  run_results->push_back(make_tuple(string("put_time [ms]"), time_acc/1e3));
+  run_results->push_back(make_tuple(string("std_put_time [ms]"), time_acc/1e3));
   time_acc = 0;
-  //for (int i = 0; i < (int) v->size(); i++) {
-  //}
+  for (int i = 0; i < (int) v->size(); i++) {
+    double data = v->at(i);
+    string comp;
+    gettimeofday(&start_time, NULL);
+    Status s = rocks_get(to_string(data), &comp);
+    gettimeofday(&end_time, NULL);
+    if (comp.compare(to_string(data)) != 0) {
+      eexit("Database failed get: expected=%s : actual=%s\n",
+          to_string(data).c_str(), comp.c_str());
+    }
+    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
+        (start_time.tv_sec * 1e6 + start_time.tv_usec);
+  }
+  run_results->push_back(make_tuple(string("std_get_time [ms]"), time_acc/1e3));
 
   delete(v);
   return run_results;
@@ -104,12 +116,29 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
   vector<tuple<string, double>> *run_results =
     new vector<tuple<string, double>>();
   for(int i = 0; i < (int) v->size(); i++) {
-    //double data = v->at(i);
-    //gettimeofday(&start_time, NULL);
-    //rocks_put(to_string(data), to_string(data));
-    //gettimeofday(&end_time, NULL);
+    double data = v->at(i);
+    gettimeofday(&start_time, NULL);
+    rocks_put(to_string(data), to_string(data));
+    gettimeofday(&end_time, NULL);
+    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
+        (start_time.tv_sec * 1e6 + start_time.tv_usec);
   }
-  run_results->push_back(make_tuple(string("put_time [ms]"), -1));
+  run_results->push_back(make_tuple(string("std_put_time [ms]"), time_acc/1e3));
+  time_acc = 0;
+  for (int i = 0; i < (int) v->size(); i++) {
+    double data = v->at(i);
+    string comp;
+    gettimeofday(&start_time, NULL);
+    Status s = rocks_get(to_string(data), &comp);
+    gettimeofday(&end_time, NULL);
+    if (comp.compare(to_string(data)) != 0) {
+      eexit("Database failed get: expected=%s : actual=%s\n",
+          to_string(data).c_str(), comp.c_str());
+    }
+    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
+        (start_time.tv_sec * 1e6 + start_time.tv_usec);
+  }
+  run_results->push_back(make_tuple(string("std_get_time [ms]"), time_acc/1e3));
   delete(v);
   return run_results;
 }

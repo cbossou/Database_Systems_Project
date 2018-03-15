@@ -68,23 +68,19 @@ Transaction *txn;
 TransactionOptions txnops;
 
 // create an instance of the database
-void rocks_init() {
+Status rocks_init() {
   opts.create_if_missing = true;
   Status s = TransactionDB::Open(opts, dbopts, DBPath, &dbptr);
-  if (!s.ok()) {
-    eexit("Database creation failed\n");
-  }
   txn = NULL;
+  return s;
 }
 
 // destroy the current database
-void rocks_destroy() {
+Status rocks_destroy() {
   delete dbptr;
   dbptr = NULL;
   Status s = DestroyDB(DBPath, opts);
-  if (!s.ok()) {
-    eexit("Can't destroy database\n");
-  }
+  return s;
 }
 
 // begin a new transaction
