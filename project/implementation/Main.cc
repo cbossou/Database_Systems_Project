@@ -1,4 +1,5 @@
 #include "ExtraUtil.h"
+#include "RocksUtil.h"
 #include "BenchMark.h"
 
 #include <string>

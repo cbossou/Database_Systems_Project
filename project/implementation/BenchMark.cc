@@ -1,4 +1,5 @@
 #include "BenchMark.h"
+#include "RocksUtil.h"
 
 #include <sys/time.h>
 #include <random>

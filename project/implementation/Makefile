@@ -52,7 +52,7 @@ ROCKSDBLINKFLAGS = $(INSTALL_PATH)/lib/librocksdb.a -I$(INSTALL_PATH)/include \
 CPPSRCEXT = cc
 CPPHEADEXT = h
 MAIN = Main
-MODULES = ExtraUtil BenchMark
+MODULES = ExtraUtil RocksUtil BenchMark
 HEADERS = $(MODULES:%=%.$(CPPHEADEXT))
 SRC = $(MAIN:%=%.$(CPPSRCEXT)) $(MODULES:%=%.$(CPPSRCEXT))
 OBJ = $(SRC:%.$(CPPSRCEXT)=%.o)
