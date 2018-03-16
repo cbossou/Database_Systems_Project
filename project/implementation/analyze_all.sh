@@ -1,11 +1,12 @@
 #!/bin/bash
 
+# This script runs analyze_results on all results CSVs which are in every sub folder of all *_results folders
+
 num_results=$(ls | grep '_results$')
 if [ "${num_results[0]}" == "" ]; then
   echo "please run RocksBench to generate results first"
   exit 1
 fi
-
 
 for results in $(ls | grep '_results$'); do
   for test_type in $(ls $results); do
