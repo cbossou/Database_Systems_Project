@@ -22,7 +22,7 @@
 #define RESULT_VALUE 1
 
 #ifndef DEFAULT_BEGIN_SIZE
-#define DEFAULT_BEGIN_SIZE 1000
+#define DEFAULT_BEGIN_SIZE 10
 #endif
 
 #ifndef MAX_BASE_SIZE
