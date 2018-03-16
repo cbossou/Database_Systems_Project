@@ -46,19 +46,20 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
     new vector<tuple<string, double>>();
 
   time_acc = 0;
+  // these are strict write because the DB is emptied before this funcion call
   for(int i = 0; i < (int) v->size(); i++) {
     double data = v->at(i);
     time_func(rocks_put, to_string(data), to_string(data));
     if (!s.ok()) {
-      eexit("%s failed put for %s\n",
-          __FUNCTION__, to_string(data));
+      eexit("%s failed put for (%s,%s)\n",
+          __FUNCTION__, to_string(data), to_string(data));
     }
   }
   run_results->push_back(make_tuple(
-        string("1s x put_time [ms]"), time_acc/1e3));
+        string("put_time [ms]"), time_acc / 1e3));
 
   time_acc = 0;
-  // need 1000 reads for every 10 writes
+  // need 100 reads for every 1 writes
   for (int read_count = 0; read_count < 100; read_count++) {
     for (int i = 0; i < (int) v->size(); i++) {
       double data = v->at(i);
@@ -71,19 +72,36 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
     }
   }
   run_results->push_back(make_tuple(
-        string("100s x get_time [ms]"), time_acc/1e3));
+        string("get_time [ms]"), time_acc / 1e3 / 100));
 
   // need 5 deletes for every 10 writes
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
-    time_func(rocks_delete, to_string(v->at(i)));
+    double data = v->at(i);
+    time_func(rocks_delete, to_string(data));
     if (!s.ok()) {
       eexit("%s failed delete on key %s\n",
-          __FUNCTION__, to_string(v->at(i)).c_str());
+          __FUNCTION__, to_string(data));
     }
   }
   run_results->push_back(make_tuple(
-        string("0.5s x delete_time [ms]"), time_acc/1e3));
+        string("delete_time [ms]"), 2 * time_acc / 1e3));
+
+  // need 5 updates for every 10 writes
+  // these are updates because we inserted these entries beforehand
+  time_acc = 0;
+  for (int i = 0; i < size / 2; i++) {
+    double data = v->at(i);
+    time_func(rocks_put, to_string(data), to_string(data));
+    if (!s.ok()) {
+      eexit("%s failed update for (%s,%d)\n",
+          __FUNCTION__, to_string(data), to_string(data));
+    }
+  }
+  run_results->push_back(make_tuple(
+        string("update_time [ms]"), 2 * time_acc / 1e3));
+
+
 
   delete(v);
   return run_results;
@@ -137,19 +155,20 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
     new vector<tuple<string, double>>();
 
   time_acc = 0;
+  // these are strict write because the DB is emptied before this funcion call
   for(int i = 0; i < (int) v->size(); i++) {
     double data = v->at(i);
     time_func(rocks_put, to_string(data), to_string(data));
     if (!s.ok()) {
-      eexit("%s failed put for %s\n",
-          __FUNCTION__, to_string(data));
+      eexit("%s failed put for (%s,%s)\n",
+          __FUNCTION__, to_string(data), to_string(data));
     }
   }
   run_results->push_back(make_tuple(
-        string("1s x put_time [ms]"), time_acc/1e3));
+        string("put_time [ms]"), time_acc / 1e3));
 
   time_acc = 0;
-  // need 1000 reads for every 10 writes
+  // need 100 reads for every 1 writes
   for (int read_count = 0; read_count < 100; read_count++) {
     for (int i = 0; i < (int) v->size(); i++) {
       double data = v->at(i);
@@ -162,19 +181,34 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
     }
   }
   run_results->push_back(make_tuple(
-        string("100s x get_time [ms]"), time_acc/1e3));
+        string("get_time [ms]"), time_acc / 1e3 / 100));
 
   // need 5 deletes for every 10 writes
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
-    time_func(rocks_delete, to_string(v->at(i)));
+    double data = v->at(i);
+    time_func(rocks_delete, to_string(data));
     if (!s.ok()) {
       eexit("%s failed delete on key %s\n",
-          __FUNCTION__, to_string(v->at(i)).c_str());
+          __FUNCTION__, to_string(data));
     }
   }
   run_results->push_back(make_tuple(
-        string("0.5s x delete_time [ms]"), time_acc/1e3));
+        string("delete_time [ms]"), 2 * time_acc / 1e3));
+
+  // need 5 updates for every 10 writes
+  // these are updates because we inserted these entries beforehand
+  time_acc = 0;
+  for (int i = 0; i < size / 2; i++) {
+    double data = v->at(i);
+    time_func(rocks_put, to_string(data), to_string(data));
+    if (!s.ok()) {
+      eexit("%s failed update for (%s,%d)\n",
+          __FUNCTION__, to_string(data), to_string(data));
+    }
+  }
+  run_results->push_back(make_tuple(
+        string("update_time [ms]"), 2 * time_acc / 1e3));
 
   delete(v);
   return run_results;
