@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <boost/filesystem.hpp>
 
-#define RESULT_PATH ("results")
+#define RESULT_PATH (results_name.compare("") == 0 ? "" : results_name + "_" \
+    + "results").c_str()
 #define RESULT_PATH_STR (string(RESULT_PATH))
 #define TEST_PATH_STR(test) (RESULT_PATH_STR + string("/") + test + string("/"))
 #define TEST_PATH(test) ((TEST_PATH_STR(test)).c_str())
@@ -21,6 +22,10 @@
 #define RESULT_NAME 0
 #define RESULT_VALUE 1
 
+#ifndef DEFAULT_BEGIN_SIZE
+#define DEFAULT_BEGIN_SIZE 1000
+#endif
+
 #ifndef MAX_BASE_SIZE
 #define MAX_BASE_SIZE 1000000
 #endif
@@ -29,9 +34,14 @@
 #define MAX_NUM_TRIALS 100
 #endif
 
+#ifndef DEFAULT_RESULTS_NAME
+#define DEFAULT_RESULTS_NAME "default"
+#endif
+
 using namespace std;
 
-int max_size, num_trials;
+int begin_size, max_size, num_trials;
+string results_name;
 
 int benchmark_wrapper(int size, double average, string bench_name,
     vector<tuple<string, double>> *(*bench_func)(int size, double average)) {
@@ -75,17 +85,28 @@ int benchmark_wrapper(int size, double average, string bench_name,
 
 int main(int argc, char **argv) {
 
+  begin_size = DEFAULT_BEGIN_SIZE;
   max_size = MAX_BASE_SIZE;
   num_trials = MAX_NUM_TRIALS;
+  results_name = DEFAULT_RESULTS_NAME;
 
   int c;
-  while((c = getopt(argc, argv, "s:t:")) != -1) {
+  while((c = getopt(argc, argv, "n:b:s:t:")) != -1) {
+    if (c == 'b' || c == 's' || c == 't') {
+      if (!isdigit(optarg[0])) eexit("Entered non-int for int argument\n");
+    }
     switch(c) {
+      case 'b':
+        begin_size = atoi(optarg);
+        break;
       case 's':
         max_size = atoi(optarg) < max_size ? atoi(optarg) : max_size;
         break;
       case 't':
         num_trials = atoi(optarg) < num_trials ? atoi(optarg) : num_trials;
+        break;
+      case 'n':
+        results_name = string(optarg);
         break;
     }
   }
@@ -97,7 +118,7 @@ int main(int argc, char **argv) {
   rocks_destroy(); // just in case it survived from a midway cutoff
 
   // run the benchmarks
-  for (int i = 1; i <= max_size; i *= 10) {
+  for (int i = begin_size; i <= max_size; i *= 10) {
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
 
