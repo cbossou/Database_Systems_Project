@@ -123,7 +123,6 @@ int main(int argc, char **argv) {
   for (int i = begin_size; i <= max_size; i *= 10) {
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
-
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(rnd_hit_read), TEST_ADDR(rnd_hit_read));
   }

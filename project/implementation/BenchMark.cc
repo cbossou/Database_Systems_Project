@@ -6,13 +6,22 @@
 #include <vector>
 #include <tuple>
 
+#define us_2_ms(val_us) (val_us / 1e3)
+
 #define time_func(func, ...) { \
-    gettimeofday(&start_time, NULL); \
-    s = func(__VA_ARGS__); \
-    gettimeofday(&end_time, NULL); \
-    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) - \
-        (start_time.tv_sec * 1e6 + start_time.tv_usec); \
+  gettimeofday(&start_time, NULL); \
+  s = func(__VA_ARGS__); \
+  gettimeofday(&end_time, NULL); \
+  time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) - \
+  (start_time.tv_sec * 1e6 + start_time.tv_usec); \
 }
+
+#define average_time(time_acc, num_ops) ((time_acc) / (num_ops))
+
+#define BASE_READ_HEAVY_WRITES 10
+#define BASE_READ_HEAVY_READS 1000
+#define BASE_READ_HEAVY_UPDATES 5
+#define BASE_READ_HEAVY_DELETES 5
 
 using namespace std;
 
@@ -39,29 +48,37 @@ vector<double> *make_rnd_data(int size, double average) {
 }
 
 // sequential, high hit rate, read heavy
+// write:read:update:delete :: 10:1000:5:5
 vector<tuple<string, double>> *seq_hit_read(int size, double average) {
 
   vector<double> *v = make_seq_data(size, average - size/2);
   vector<tuple<string, double>> *run_results =
     new vector<tuple<string, double>>();
 
+  int bw = BASE_READ_HEAVY_WRITES;
+  int br = BASE_READ_HEAVY_READS;
+  int bu = BASE_READ_HEAVY_UPDATES;
+  int bd = BASE_READ_HEAVY_DELETES;
+
+  // perform writes
   time_acc = 0;
-  // these are strict write because the DB is emptied before this funcion call
-  for(int i = 0; i < (int) v->size(); i++) {
-    double data = v->at(i);
-    time_func(rocks_put, to_string(data), to_string(data));
-    if (!s.ok()) {
-      eexit("%s failed put for (%s,%s)\n",
-          __FUNCTION__, to_string(data), to_string(data));
+  for (int write_count = 0; write_count < bw; write_count++) {
+    for(int i = 0; i < size; i++) {
+      double data = v->at(i);
+      time_func(rocks_put, to_string(data), to_string(data));
+      if (!s.ok()) {
+        eexit("%s failed put for (%s,%s)\n",
+            __FUNCTION__, to_string(data), to_string(data));
+      }
     }
   }
-  run_results->push_back(make_tuple(
-        string("put_time [ms]"), time_acc / 1e3));
+  run_results->push_back(make_tuple("put_time [ms]",
+        us_2_ms(average_time(time_acc, bw))));
 
+  // perform reads
   time_acc = 0;
-  // need 100 reads for every 1 writes
-  for (int read_count = 0; read_count < 100; read_count++) {
-    for (int i = 0; i < (int) v->size(); i++) {
+  for (int read_count = 0; read_count < br; read_count++) {
+    for (int i = 0; i < size; i++) {
       double data = v->at(i);
       string comp;
       time_func(rocks_get, to_string(data), &comp);
@@ -71,35 +88,38 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
       }
     }
   }
-  run_results->push_back(make_tuple(
-        string("get_time [ms]"), time_acc / 1e3 / 100));
+  run_results->push_back(make_tuple("get_time [ms]",
+        us_2_ms(average_time(time_acc, br))));
 
-  // need 1/2 delete for every 1 write
+  // perform updates
   time_acc = 0;
-  for (int i = 0; i < size / 2; i++) {
-    double data = v->at(i);
-    time_func(rocks_delete, to_string(data));
-    if (!s.ok()) {
-      eexit("%s failed delete on key %s\n",
-          __FUNCTION__, to_string(data));
+  for (int update_count = 0; update_count < bu; update_count++) {
+    for (int i = 0; i < size; i++) {
+      double data = v->at(i);
+      time_func(rocks_put, to_string(data), to_string(data));
+      if (!s.ok()) {
+        eexit("%s failed update for (%s,%d)\n",
+            __FUNCTION__, to_string(data), to_string(data));
+      }
     }
   }
-  run_results->push_back(make_tuple(
-        string("delete_time [ms]"), 2 * time_acc / 1e3));
+  run_results->push_back(make_tuple("update_time [ms]",
+        us_2_ms(average_time(time_acc, bu))));
 
-  // need 1/2 updates for every 1 write
-  // these are updates because we inserted these entries beforehand
+  // perform deletes
   time_acc = 0;
-  for (int i = 0; i < size / 2; i++) {
-    double data = v->at(i);
-    time_func(rocks_put, to_string(data), to_string(data));
-    if (!s.ok()) {
-      eexit("%s failed update for (%s,%d)\n",
-          __FUNCTION__, to_string(data), to_string(data));
+  for (int delete_count = 0; delete_count < bd; delete_count++) {
+    for (int i = 0; i < size; i++) {
+      double data = v->at(i);
+      time_func(rocks_delete, to_string(data));
+      if (!s.ok()) {
+        eexit("%s failed delete on key %s\n",
+            __FUNCTION__, to_string(data));
+      }
     }
   }
-  run_results->push_back(make_tuple(
-        string("update_time [ms]"), 2 * time_acc / 1e3));
+  run_results->push_back(make_tuple("delete_time [ms]",
+        us_2_ms(average_time(time_acc, bd))));
 
   delete(v);
   return run_results;
@@ -147,28 +167,36 @@ vector<tuple<string, double>> *seq_miss_delete(int size, double average) {
 }
 
 // random, high hit rate, read heavy
+// write:read:update:delete :: 10:1000:5:5
 vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
   vector<double> *v = make_rnd_data(size, average);
   vector<tuple<string, double>> *run_results =
     new vector<tuple<string, double>>();
 
+  int bw = BASE_READ_HEAVY_WRITES;
+  int br = BASE_READ_HEAVY_READS;
+  int bu = BASE_READ_HEAVY_UPDATES;
+  int bd = BASE_READ_HEAVY_DELETES;
+
+  // perform writes
   time_acc = 0;
-  // these are strict write because the DB is emptied before this funcion call
-  for(int i = 0; i < (int) v->size(); i++) {
-    double data = v->at(i);
-    time_func(rocks_put, to_string(data), to_string(data));
-    if (!s.ok()) {
-      eexit("%s failed put for (%s,%s)\n",
-          __FUNCTION__, to_string(data), to_string(data));
+  for (int write_count = 0; write_count < bw; write_count++) {
+    for(int i = 0; i < size; i++) {
+      double data = v->at(i);
+      time_func(rocks_put, to_string(data), to_string(data));
+      if (!s.ok()) {
+        eexit("%s failed put for (%s,%s)\n",
+            __FUNCTION__, to_string(data), to_string(data));
+      }
     }
   }
-  run_results->push_back(make_tuple(
-        string("put_time [ms]"), time_acc / 1e3));
+  run_results->push_back(make_tuple("put_time [ms]",
+        us_2_ms(average_time(time_acc, bw))));
 
+  // perform reads
   time_acc = 0;
-  // need 100 reads for every 1 writes
-  for (int read_count = 0; read_count < 100; read_count++) {
-    for (int i = 0; i < (int) v->size(); i++) {
+  for (int read_count = 0; read_count < br; read_count++) {
+    for (int i = 0; i < size; i++) {
       double data = v->at(i);
       string comp;
       time_func(rocks_get, to_string(data), &comp);
@@ -178,39 +206,41 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
       }
     }
   }
-  run_results->push_back(make_tuple(
-        string("get_time [ms]"), time_acc / 1e3 / 100));
+  run_results->push_back(make_tuple("get_time [ms]",
+        us_2_ms(average_time(time_acc, br))));
 
-  // need 1/2 delete for every 1 write
+  // perform updates
   time_acc = 0;
-  for (int i = 0; i < size / 2; i++) {
-    double data = v->at(i);
-    time_func(rocks_delete, to_string(data));
-    if (!s.ok()) {
-      eexit("%s failed delete on key %s\n",
-          __FUNCTION__, to_string(data));
+  for (int update_count = 0; update_count < bu; update_count++) {
+    for (int i = 0; i < size; i++) {
+      double data = v->at(i);
+      time_func(rocks_put, to_string(data), to_string(data));
+      if (!s.ok()) {
+        eexit("%s failed update for (%s,%d)\n",
+            __FUNCTION__, to_string(data), to_string(data));
+      }
     }
   }
-  run_results->push_back(make_tuple(
-        string("delete_time [ms]"), 2 * time_acc / 1e3));
+  run_results->push_back(make_tuple("update_time [ms]",
+        us_2_ms(average_time(time_acc, bu))));
 
-  // need 1/2 update for every 1 write
-  // these are updates because we inserted these entries beforehand
+  // perform deletes
   time_acc = 0;
-  for (int i = 0; i < size / 2; i++) {
-    double data = v->at(i);
-    time_func(rocks_put, to_string(data), to_string(data));
-    if (!s.ok()) {
-      eexit("%s failed update for (%s,%d)\n",
-          __FUNCTION__, to_string(data), to_string(data));
+  for (int delete_count = 0; delete_count < bd; delete_count++) {
+    for (int i = 0; i < size; i++) {
+      double data = v->at(i);
+      time_func(rocks_delete, to_string(data));
+      if (!s.ok()) {
+        eexit("%s failed delete on key %s\n",
+            __FUNCTION__, to_string(data));
+      }
     }
   }
-  run_results->push_back(make_tuple(
-        string("update_time [ms]"), 2 * time_acc / 1e3));
+  run_results->push_back(make_tuple("delete_time [ms]",
+        us_2_ms(average_time(time_acc, bd))));
 
   delete(v);
   return run_results;
-
 }
 
 // random, high hit rate, write heavy
