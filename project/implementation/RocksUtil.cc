@@ -77,6 +77,6 @@ Status rocks_get_buffer(string key, string *pvalue) {
 }
 
 Status rocks_delete(string key) {
-  Status s = dbptr->SingleDelete(wopts, key);
+  Status s = dbptr->Delete(wopts, key);
   return s;
 }

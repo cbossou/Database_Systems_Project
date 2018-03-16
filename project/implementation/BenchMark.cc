@@ -6,10 +6,19 @@
 #include <vector>
 #include <tuple>
 
+#define time_func(func, ...) { \
+    gettimeofday(&start_time, NULL); \
+    s = func(__VA_ARGS__); \
+    gettimeofday(&end_time, NULL); \
+    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) - \
+        (start_time.tv_sec * 1e6 + start_time.tv_usec); \
+}
+
 using namespace std;
 
 static uint64_t time_acc;
 static struct timeval start_time, end_time;
+static Status s;
 
 vector<double> *make_seq_data(int size, int start) {
   vector<double> *v = new vector<double>();
@@ -39,14 +48,14 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
   time_acc = 0;
   for(int i = 0; i < (int) v->size(); i++) {
     double data = v->at(i);
-    gettimeofday(&start_time, NULL);
-    Status s = rocks_put(to_string(data), to_string(data));
-    gettimeofday(&end_time, NULL);
-    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
-        (start_time.tv_sec * 1e6 + start_time.tv_usec);
+    time_func(rocks_put, to_string(data), to_string(data));
+    if (!s.ok()) {
+      eexit("%s failed put for %s\n",
+          __FUNCTION__, to_string(data));
+    }
   }
   run_results->push_back(make_tuple(
-        string("10 x put_time [ms]"), time_acc/1e3));
+        string("1s x put_time [ms]"), time_acc/1e3));
 
   time_acc = 0;
   // need 1000 reads for every 10 writes
@@ -54,34 +63,27 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
     for (int i = 0; i < (int) v->size(); i++) {
       double data = v->at(i);
       string comp;
-      gettimeofday(&start_time, NULL);
-      Status s = rocks_get(to_string(data), &comp);
-      gettimeofday(&end_time, NULL);
-      if (comp.compare(to_string(data)) != 0) {
-        eexit("Database failed get: expected=%s : actual=%s\n",
-            to_string(data).c_str(), comp.c_str());
+      time_func(rocks_get, to_string(data), &comp);
+      if (!s.ok() || comp.compare(to_string(data)) != 0) {
+        eexit("%s failed get: expected=%s : actual=%s\n",
+            __FUNCTION__, to_string(data).c_str(), comp.c_str());
       }
-      time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
-        (start_time.tv_sec * 1e6 + start_time.tv_usec);
     }
   }
   run_results->push_back(make_tuple(
-        string("1000 x get_time [ms]"), time_acc/1e3));
+        string("100s x get_time [ms]"), time_acc/1e3));
 
   // need 5 deletes for every 10 writes
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
-    gettimeofday(&start_time, NULL);
-    Status s = rocks_delete(to_string(v->at(i)));
-    gettimeofday(&end_time, NULL);
+    time_func(rocks_delete, to_string(v->at(i)));
     if (!s.ok()) {
-      eexit("Database failed delete on key %s\n", to_string(v->at(i)).c_str());
+      eexit("%s failed delete on key %s\n",
+          __FUNCTION__, to_string(v->at(i)).c_str());
     }
-    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
-      (start_time.tv_sec * 1e6 + start_time.tv_usec);
   }
   run_results->push_back(make_tuple(
-        string("5 x delete_time [ms]"), time_acc/1e3));
+        string("0.5s x delete_time [ms]"), time_acc/1e3));
 
   delete(v);
   return run_results;
@@ -137,51 +139,46 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
   time_acc = 0;
   for(int i = 0; i < (int) v->size(); i++) {
     double data = v->at(i);
-    gettimeofday(&start_time, NULL);
-    rocks_put(to_string(data), to_string(data));
-    gettimeofday(&end_time, NULL);
-    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
-        (start_time.tv_sec * 1e6 + start_time.tv_usec);
+    time_func(rocks_put, to_string(data), to_string(data));
+    if (!s.ok()) {
+      eexit("%s failed put for %s\n",
+          __FUNCTION__, to_string(data));
+    }
   }
   run_results->push_back(make_tuple(
-        string("10 x put_time [ms]"), time_acc/1e3));
+        string("1s x put_time [ms]"), time_acc/1e3));
 
   time_acc = 0;
+  // need 1000 reads for every 10 writes
   for (int read_count = 0; read_count < 100; read_count++) {
     for (int i = 0; i < (int) v->size(); i++) {
       double data = v->at(i);
       string comp;
-      gettimeofday(&start_time, NULL);
-      Status s = rocks_get(to_string(data), &comp);
-      gettimeofday(&end_time, NULL);
-      if (comp.compare(to_string(data)) != 0) {
-        eexit("Database failed get: expected=%s : actual=%s\n",
-            to_string(data).c_str(), comp.c_str());
+      time_func(rocks_get, to_string(data), &comp);
+      if (!s.ok() || comp.compare(to_string(data)) != 0) {
+        eexit("%s failed get: expected=%s : actual=%s\n",
+            __FUNCTION__, to_string(data).c_str(), comp.c_str());
       }
-      time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
-        (start_time.tv_sec * 1e6 + start_time.tv_usec);
     }
   }
   run_results->push_back(make_tuple(
-        string("1000 x get_time [ms]"), time_acc/1e3));
+        string("100s x get_time [ms]"), time_acc/1e3));
 
   // need 5 deletes for every 10 writes
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
-    gettimeofday(&start_time, NULL);
-    Status s = rocks_delete(to_string(v->at(i)));
-    gettimeofday(&end_time, NULL);
+    time_func(rocks_delete, to_string(v->at(i)));
     if (!s.ok()) {
-      eexit("Database failed delete on key %s\n", to_string(v->at(i)).c_str());
+      eexit("%s failed delete on key %s\n",
+          __FUNCTION__, to_string(v->at(i)).c_str());
     }
-    time_acc += (end_time.tv_sec * 1e6 + end_time.tv_usec) -
-      (start_time.tv_sec * 1e6 + start_time.tv_usec);
   }
   run_results->push_back(make_tuple(
-        string("5 x delete_time [ms]"), time_acc/1e3));
+        string("0.5s x delete_time [ms]"), time_acc/1e3));
 
   delete(v);
   return run_results;
+
 }
 
 // random, high hit rate, write heavy

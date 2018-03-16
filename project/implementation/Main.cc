@@ -26,7 +26,7 @@
 #endif
 
 #ifndef MAX_NUM_TRIALS
-#define MAX_NUM_TRIALS 1000
+#define MAX_NUM_TRIALS 100
 #endif
 
 using namespace std;
