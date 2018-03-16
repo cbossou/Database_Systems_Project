@@ -10,8 +10,7 @@
 #include <stdlib.h>
 #include <boost/filesystem.hpp>
 
-#define RESULT_PATH (results_name.compare("") == 0 ? "" : results_name + "_" \
-    + "results").c_str()
+#define RESULT_PATH (results_name + "_" + "results").c_str()
 #define RESULT_PATH_STR (string(RESULT_PATH))
 #define TEST_PATH_STR(test) (RESULT_PATH_STR + string("/") + test + string("/"))
 #define TEST_PATH(test) ((TEST_PATH_STR(test)).c_str())
@@ -107,6 +106,9 @@ int main(int argc, char **argv) {
         break;
       case 'n':
         results_name = string(optarg);
+        if (results_name.compare("") == 0) {
+          eexit("Must have prefix for results folder name\n");
+        }
         break;
     }
   }
