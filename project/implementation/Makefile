@@ -64,7 +64,7 @@ CPPCOMPFLAGS = --std=c++11 -Wall -Werror -pedantic
 CPPCOMPFLAGS += $(ROCKSDBCOMPFLASGS)
 CPPLINKFLAGS = -lboost_filesystem -lboost_system
 CPPLINKFLAGS += $(ROCKSDBLINKFLAGS)
-RESULTSDIR = results
+RESULTSDIR = *results
 
 all: $(EXE)
 
