@@ -74,7 +74,7 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
   run_results->push_back(make_tuple(
         string("get_time [ms]"), time_acc / 1e3 / 100));
 
-  // need 5 deletes for every 10 writes
+  // need 1/2 delete for every 1 write
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
     double data = v->at(i);
@@ -87,7 +87,7 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
   run_results->push_back(make_tuple(
         string("delete_time [ms]"), 2 * time_acc / 1e3));
 
-  // need 5 updates for every 10 writes
+  // need 1/2 updates for every 1 write
   // these are updates because we inserted these entries beforehand
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
@@ -100,8 +100,6 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
   }
   run_results->push_back(make_tuple(
         string("update_time [ms]"), 2 * time_acc / 1e3));
-
-
 
   delete(v);
   return run_results;
@@ -183,7 +181,7 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
   run_results->push_back(make_tuple(
         string("get_time [ms]"), time_acc / 1e3 / 100));
 
-  // need 5 deletes for every 10 writes
+  // need 1/2 delete for every 1 write
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
     double data = v->at(i);
@@ -196,7 +194,7 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
   run_results->push_back(make_tuple(
         string("delete_time [ms]"), 2 * time_acc / 1e3));
 
-  // need 5 updates for every 10 writes
+  // need 1/2 update for every 1 write
   // these are updates because we inserted these entries beforehand
   time_acc = 0;
   for (int i = 0; i < size / 2; i++) {
