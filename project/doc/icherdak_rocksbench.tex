@@ -1,0 +1,259 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}                     % Dummytext
+\usepackage{hyperref}
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{tikz-qtree}
+\usepackage{tikz}
+\usepackage[linguistics]{forest}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}% filled box
+\newcommand*{\QEDB}{\hfill\ensuremath{\square}}% unfilled box
+
+% dem nice tables
+\usepackage[hmargin=2cm,top=4cm,headheight=65pt,footskip=65pt]{geometry}
+\usepackage{fmtcount} % for \ordinalnum
+\usepackage{array,multirow}
+\usepackage{tabularx}
+\usepackage{lastpage}
+
+
+% add a special collumn type
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+
+%header/footer stuff
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%note that if you do not do these blank ones, the package defaults to something
+%you may not want in your header or footer
+\lhead{CMPS 278}
+\chead{RocksBench}
+\rhead{\today}
+\lfoot{Isaak Cherdak}
+\cfoot{}
+\rfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\usepackage[english]{babel}
+\emergencystretch=1pt
+\usepackage[justification=centering]{caption}
+\graphicspath{{Pictures/} }
+
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+\usepackage{setspace}
+\doublespacing
+
+\title{RocksBench\\CMPS 278}
+\author{Isaak Cherdak}
+%\date{} %blank date
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+\section*{Notation}
+
+\begin{center}
+  \begin{tabular}{ | l | l | }
+    \hline
+    Abbreviation & Expanded Phrase or meaning\\ \hline \hline
+    DBMS & Database Management System\\ \hline
+    SLA & Service Level Agreement\\ \hline
+  \end{tabular}
+\end{center}
+
+\section{Introduction}
+\label{sec:overview}
+
+RocksDB is a popular DBMS used in applications ranging from storing data for
+Netflix to being a component of other database services like MongoDB. This is
+very impressive as RocksDB was only designed specifically for Facebook's needs:
+to lessen the bottleneck of storage space. The general philosophy behind RocksDB
+is that as long as the SLA is met, all optimizations should be focused on
+decreasing storage space. However, since the best DBMS depends on the use
+case(TODO CITE SHEL AND CLASS), it is not completely clear as to what situations
+would best make use of RocksDB. RocksBench is a simple benchmark that aims to
+give better insight into the applications where RocksDB would be especially
+effective and those where another system may be a better fit.
+
+
+LSM trees and hence is very write optimized
+
+\section{Motivation}
+
+\todo[inline]{TODO: this is basically the problem section}
+
+\section{Background}
+\label{sec:background}
+
+\subsection{My Personal Experience}
+\label{subsec:personal_experience}
+
+I have experience setting up Benchmarks in C/C++ for various data structures.
+Specifically, I have been able to send multiple experiment trials to a file and
+have used pilot, a tool made by the SSRC (my research lab), to generate
+analytics for the results (such as standard deviation, average, etc). I have
+also been able to graph these results using matplotlib. I plan to apply this
+experience to design a similar process of running experiments on RocksDB.
+
+I previously did experiments on four different data structures: Singly Linked
+List, Vector, B-Tree, and LSM-Tree. The first three were written by myself in a
+consistent manner and the LSM-Tree was adapted based off one created by a
+Harvard PhD student. The benchmark was at best able to run 40000 inserts and
+40000 get calls with 100 trials in approximately 30 seconds. The order of
+inserts and get calls wasn't the same but the way they were run differed
+depending on the data structure. The hardware setup was as described in
+\ref{subsec:test_hw} as well as my laptop which had comparable results. Test
+results included aggregate runtime of all inserts, aggregate runtime of all
+calls to get, and total in-memory size at the end of all insertions. It should
+be noted that I was able to run these experiments without having any issues with
+memory / storage usage (runtime was main bottleneck) when using an 800 MB NVRAM
+pool. Valgrind reported approximately 25 GB of dynamic memory allocating/freeing
+over the course of all trials/experiments in the case of 40000 inserts/100
+trials.
+
+\subsection{LSM Trees}
+
+\todo[inline]{TODO}
+
+Over the course of the development and deployment of RocksDB, Facebook
+determined that the most useful properties of the LSM tree were decreased write
+and space amplification. Before this discovery, LSM trees were less popular and
+their most major benefit was thought to be decreased random writes to storage.
+
+\subsection{RocksDB}
+
+\todo[inline]{TODO}
+
+The RocksDB paper gave a lot of insight into how their system was implemented
+and how it worked in practice, even though it didn't provide many particularly
+novel ideas.
+
+A major concern I had with the RocksDB paper was the evaluation section. It's
+difficult to fairly compare RocksDB with another system since RocksDB only
+intends to meet SLA: any differences in performance between other systems are
+kind of irrelevant in this regard. The only metric that mattered was storage
+size which wasn't any better than InnoDB (with zlib compression) and TokuDB
+(with no compression). As such, the message appears to be that RocksDB maintains
+reasonable storage optimization while also giving reasonable performance.
+
+\section{RocksBench}
+
+\subsection{Overview}
+
+A benchmark will be designed in C++. This benchmark will run a variety of
+different tests with varying ratios of operations (put/get/update/delete). A
+single experiment is defined as a single group of operations that is run with at
+least 100 trials. The purpose of doing multiple trials is to ensure accuracy of
+results.
+
+\subsection{Characterization of tests}
+\label{subsec:characterization_tests}
+
+I will be running various ratios of each operation for different experiments. I
+plan to vary read:write:delete and read:update:delete ratios. I am aiming to
+have at least eight graphs of different scenarios of these variances. Some I
+have planned are (these are planned estimates) for read:write:delete:: (high hit
+rate) 1000:10:5, 10:1000:500, (low hit rate) 1000:10:5, 10:1000:500; and for
+update:write:delete:: (high hit rate) 1000:10:5, 10:1000:500, (low hit rate)
+1000:10:5, 10:1000:500. These are currently just some ideas I have and can
+easily come up with different variations as my experiments help me get an idea
+of what information may be interesting. The limit on the number of operations /
+memory usage is dependent on that which is described in
+\ref{subsec:max_threshold}.
+
+\subsection{Test Hardware}
+\label{subsec:test_hw}
+
+I will be running these tests on a virtual machine on my home desktop. My home
+desktop has a AMD Ryzen R7 1700 CPU, 32 GB 3000MHz DDR4 RAM, and a 500 GB
+primary storage SSD. The virtual machine will be using 8 CPU cores, 16 GB RAM,
+and 50 GB of my SSD.
+
+\subsection{Maximum Threshold}
+\label{subsec:max_threshold}
+
+The range of tests will be as large as possible. Every experiment will take no
+longer than 1 minute: any experiment that largely exceeds this amount of time
+will not be kept. Note that every experiment will include at least 100 trials
+and the 1 minute requirement includes all trials. Tests that complete in
+significantly less than 1 minute will accordingly be set to run a larger number
+of trials. In addition, obviously any tests that require more than my available
+pool of memory and storage will not be run. An idea of what this maximum
+threshold may be, will be more clear after reading
+\ref{subsec:personal_experience}.
+
+\subsection{Implementation}
+
+\todo[inline]{TODO}
+
+\subsection{Results}
+
+\todo[inline]{TODO}
+
+I observed some interesting results over the course of the variety of tests
+performed.
+
+\subsection{Future Work}
+\label{sec:future_work}
+
+I will primarily be trying to optimize RocksDB by making it utilize NVRAM
+instead of traditional DRAM. This will be done by using Intel's guide to
+emulating NVRAM
+\footnote{
+  \href{https://software.intel.com/en-us/articles/how-to-emulate-persistent-memory-on-an-intel-architecture-server/}
+  {Intel NVRAM Emulation Guide}}.
+I plan to use 4 GB of RAM as NVRAM. Please refer to \ref{subsec:test_hw} to
+understand the underlying hardware setup of the system. I will use Intel's PMDK
+library to utilize the the NVRAM. Specifically, I will be making use of the
+libpmemobj\footnote{\href{http://pmem.io/pmdk/libpmemobj/}
+{PMDK libpmemobj documentation}}.
+
+\subsection{Level A}
+
+Characterization of major use cases of RocksDB and discussion of optimizations
+that would further increase the range of use cases. This involves running
+various benchmarks and analysis of the results as described in
+\ref{subsec:characterization_tests}.
+
+\subsection{Level B}
+
+This involves the work proposed in Level A as well as tests on an optimized
+version of RocksDB. This optimization would likely be a modified version of
+RocksDB so that it runs on NVRAM as described in \ref{subsec:opt_rocksdb}.
+
+\subsection{Level C}
+
+This would involve Level A, B, and the application of Levels A and B to LevelDB.
+Finally, a comparison of the use cases between the two systems which will simply
+include the Level A analysis of both systems. This will also include a
+discussion of the cost-benefit of some of the features added to RocksDB which
+LevelDB did not have.
+
+\end{document}
