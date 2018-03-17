@@ -29,7 +29,7 @@ static uint64_t time_acc;
 static struct timeval start_time, end_time;
 static Status s;
 
-vector<double> *make_seq_data(int size, int start) {
+vector<double> *make_seq_data(uint64_t size, double start) {
   vector<double> *v = new vector<double>();
   for (double i = start; i < size + start; i++) {
     v->push_back(i);
@@ -37,11 +37,11 @@ vector<double> *make_seq_data(int size, int start) {
   return v;
 }
 
-vector<double> *make_rnd_data(int size, double average) {
+vector<double> *make_rnd_data(uint64_t size, double average) {
   poisson_distribution<int> distribution(average);
   default_random_engine generator;
   vector<double> *v = new vector<double>();
-  for (int i = 0; i < size; i++) {
+  for (uint64_t i = 0; i < size; i++) {
     v->push_back(distribution(generator));
   }
   return v;
@@ -49,21 +49,21 @@ vector<double> *make_rnd_data(int size, double average) {
 
 // sequential, high hit rate, read heavy
 // write:read:update:delete :: 10:1000:5:5
-vector<tuple<string, double>> *seq_hit_read(int size, double average) {
+vector<tuple<string, double>> *seq_hit_read(uint64_t size, double average) {
 
   vector<double> *v = make_seq_data(size, average - size/2);
   vector<tuple<string, double>> *run_results =
     new vector<tuple<string, double>>();
 
-  int bw = BASE_READ_HEAVY_WRITES;
-  int br = BASE_READ_HEAVY_READS;
-  int bu = BASE_READ_HEAVY_UPDATES;
-  int bd = BASE_READ_HEAVY_DELETES;
+  int16_t bw = BASE_READ_HEAVY_WRITES;
+  int16_t br = BASE_READ_HEAVY_READS;
+  int16_t bu = BASE_READ_HEAVY_UPDATES;
+  int16_t bd = BASE_READ_HEAVY_DELETES;
 
   // perform writes
   time_acc = 0;
-  for (int write_count = 0; write_count < bw; write_count++) {
-    for(int i = 0; i < size; i++) {
+  for (uint16_t write_count = 0; write_count < bw; write_count++) {
+    for(uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_put, to_string(data), to_string(data));
       if (!s.ok()) {
@@ -77,8 +77,8 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
 
   // perform reads
   time_acc = 0;
-  for (int read_count = 0; read_count < br; read_count++) {
-    for (int i = 0; i < size; i++) {
+  for (uint16_t read_count = 0; read_count < br; read_count++) {
+    for (uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       string comp;
       time_func(rocks_get, to_string(data), &comp);
@@ -93,8 +93,8 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
 
   // perform updates
   time_acc = 0;
-  for (int update_count = 0; update_count < bu; update_count++) {
-    for (int i = 0; i < size; i++) {
+  for (uint16_t update_count = 0; update_count < bu; update_count++) {
+    for (uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_put, to_string(data), to_string(data));
       if (!s.ok()) {
@@ -108,8 +108,8 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
 
   // perform deletes
   time_acc = 0;
-  for (int delete_count = 0; delete_count < bd; delete_count++) {
-    for (int i = 0; i < size; i++) {
+  for (uint16_t delete_count = 0; delete_count < bd; delete_count++) {
+    for (uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_delete, to_string(data));
       if (!s.ok()) {
@@ -126,62 +126,62 @@ vector<tuple<string, double>> *seq_hit_read(int size, double average) {
 }
 
 // sequential, high hit rate, write heavy
-vector<tuple<string, double>> *seq_hit_write(int size, double average) {
+vector<tuple<string, double>> *seq_hit_write(uint64_t size, double average) {
   return NULL;
 }
 
 // sequential, high hit rate, update heavy
-vector<tuple<string, double>> *seq_hit_update(int size, double average) {
+vector<tuple<string, double>> *seq_hit_update(uint64_t size, double average) {
   return NULL;
 
 }
 
 // sequential, high hit rate, delete heavy
-vector<tuple<string, double>> *seq_hit_delete(int size, double average) {
+vector<tuple<string, double>> *seq_hit_delete(uint64_t size, double average) {
   return NULL;
 
 }
 
 // sequential, high miss rate, read heavy
-vector<tuple<string, double>> *seq_miss_read(int size, double average) {
+vector<tuple<string, double>> *seq_miss_read(uint64_t size, double average) {
   return NULL;
 
 }
 
 // sequential, high miss rate, write heavy
-vector<tuple<string, double>> *seq_miss_write(int size, double average) {
+vector<tuple<string, double>> *seq_miss_write(uint64_t size, double average) {
   return NULL;
 
 }
 
 // sequential, high miss rate, update heavy
-vector<tuple<string, double>> *seq_miss_update(int size, double average) {
+vector<tuple<string, double>> *seq_miss_update(uint64_t size, double average) {
   return NULL;
 
 }
 
 // sequential, high miss rate, delete heavy
-vector<tuple<string, double>> *seq_miss_delete(int size, double average) {
+vector<tuple<string, double>> *seq_miss_delete(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high hit rate, read heavy
 // write:read:update:delete :: 10:1000:5:5
-vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
+vector<tuple<string, double>> *rnd_hit_read(uint64_t size, double average) {
   vector<double> *v = make_rnd_data(size, average);
   vector<tuple<string, double>> *run_results =
     new vector<tuple<string, double>>();
 
-  int bw = BASE_READ_HEAVY_WRITES;
-  int br = BASE_READ_HEAVY_READS;
-  int bu = BASE_READ_HEAVY_UPDATES;
-  int bd = BASE_READ_HEAVY_DELETES;
+  int16_t bw = BASE_READ_HEAVY_WRITES;
+  int16_t br = BASE_READ_HEAVY_READS;
+  int16_t bu = BASE_READ_HEAVY_UPDATES;
+  int16_t bd = BASE_READ_HEAVY_DELETES;
 
   // perform writes
   time_acc = 0;
-  for (int write_count = 0; write_count < bw; write_count++) {
-    for(int i = 0; i < size; i++) {
+  for (uint16_t write_count = 0; write_count < bw; write_count++) {
+    for(uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_put, to_string(data), to_string(data));
       if (!s.ok()) {
@@ -195,8 +195,8 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
 
   // perform reads
   time_acc = 0;
-  for (int read_count = 0; read_count < br; read_count++) {
-    for (int i = 0; i < size; i++) {
+  for (uint16_t read_count = 0; read_count < br; read_count++) {
+    for (uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       string comp;
       time_func(rocks_get, to_string(data), &comp);
@@ -211,8 +211,8 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
 
   // perform updates
   time_acc = 0;
-  for (int update_count = 0; update_count < bu; update_count++) {
-    for (int i = 0; i < size; i++) {
+  for (uint16_t update_count = 0; update_count < bu; update_count++) {
+    for (uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_put, to_string(data), to_string(data));
       if (!s.ok()) {
@@ -226,8 +226,8 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
 
   // perform deletes
   time_acc = 0;
-  for (int delete_count = 0; delete_count < bd; delete_count++) {
-    for (int i = 0; i < size; i++) {
+  for (uint16_t delete_count = 0; delete_count < bd; delete_count++) {
+    for (uint64_t i = 0; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_delete, to_string(data));
       if (!s.ok()) {
@@ -244,43 +244,43 @@ vector<tuple<string, double>> *rnd_hit_read(int size, double average) {
 }
 
 // random, high hit rate, write heavy
-vector<tuple<string, double>> *rnd_hit_write(int size, double average) {
+vector<tuple<string, double>> *rnd_hit_write(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high hit rate, update heavy
-vector<tuple<string, double>> *rnd_hit_update(int size, double average) {
+vector<tuple<string, double>> *rnd_hit_update(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high hit rate, delete heavy
-vector<tuple<string, double>> *rnd_hit_delete(int size, double average) {
+vector<tuple<string, double>> *rnd_hit_delete(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high miss rate, read heavy
-vector<tuple<string, double>> *rnd_miss_read(int size, double average) {
+vector<tuple<string, double>> *rnd_miss_read(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high miss rate, write heavy
-vector<tuple<string, double>> *rnd_miss_write(int size, double average) {
+vector<tuple<string, double>> *rnd_miss_write(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high miss rate, update heavy
-vector<tuple<string, double>> *rnd_miss_update(int size, double average) {
+vector<tuple<string, double>> *rnd_miss_update(uint64_t size, double average) {
   return NULL;
 
 }
 
 // random, high miss rate, delete heavy
-vector<tuple<string, double>> *rnd_miss_delete(int size, double average) {
+vector<tuple<string, double>> *rnd_miss_delete(uint64_t size, double average) {
   return NULL;
 
 }

@@ -2,6 +2,17 @@
 
 using namespace std;
 
+
+#ifndef DEBUG
+uint8_t debug = 0;
+#else
+uint8_t debug = 1;
+#endif
+
+void debug_enable() {
+  debug = 1;
+}
+
 // prints error to stderr and then exits program
 // prints using red color
 void eexit(const char *fmt, ...){
@@ -14,11 +25,22 @@ void eexit(const char *fmt, ...){
   exit(-1);
 }
 
-// prints using magenta color
+// prints to stderr using magenta color
 void warn_printf(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   printf(ANSI_COLOR_MAGENTA);
+  vprintf(fmt, args);
+  printf(ANSI_COLOR_RESET);
+  va_end(args);
+}
+
+
+// prints using yellow color if debug is permitted
+void debug_printf(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  printf(ANSI_COLOR_YELLOW);
   vprintf(fmt, args);
   printf(ANSI_COLOR_RESET);
   va_end(args);

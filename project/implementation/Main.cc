@@ -39,11 +39,14 @@
 
 using namespace std;
 
-int begin_size, max_size, num_trials;
+uint64_t begin_size, max_size;
+uint16_t num_trials;
 string results_name;
 
-int benchmark_wrapper(int size, double average, string bench_name,
-    vector<tuple<string, double>> *(*bench_func)(int size, double average)) {
+int benchmark_wrapper(uint64_t size, double average, string bench_name,
+    vector<tuple<string, double>> *(*bench_func)(
+      uint64_t size, double average)) {
+
   // create a folder for these tests in results
   boost::filesystem::path dir(TEST_PATH(bench_name));
   boost::filesystem::create_directory(dir);
@@ -51,14 +54,21 @@ int benchmark_wrapper(int size, double average, string bench_name,
         to_string(size) + string(".csv")).c_str(), "w");
   normal_printf("Running %d trials for %s(size=%d,average=%.3lf):\n",
       num_trials, bench_name.c_str(), size, average);
-  for (int i = 0; i < num_trials; i++) {
+
+  for (uint16_t i = 0; i < num_trials; i++) {
+    // create new database for each trial
     Status s = rocks_init();
     if (!s.ok()) {
       eexit("Database creation failed\n");
     }
+
+    // run the benchmark
+    debug_printf(("Starting trial " + to_string(i)).c_str());
     vector<tuple<string, double>> *run_results = bench_func(size, average);
+    debug_printf(("Finishing trial " + to_string(i)).c_str());
+
     if(i == 0) { // insert header line of csv
-      for (uint32_t iter = 0; iter < run_results->size(); iter++) {
+      for (uint64_t iter = 0; iter < run_results->size(); iter++) {
         fprintf(res_file, "%s%s",
             get<RESULT_NAME>(run_results->at(iter)).c_str(),
             (iter == run_results->size() - 1 ? ",\n" : ","));
@@ -67,10 +77,14 @@ int benchmark_wrapper(int size, double average, string bench_name,
             (iter == run_results->size() - 1 ? ",\n" : ","));
       }
     }
-    for (uint32_t iter = 0; iter < run_results->size(); iter++) {
+
+    // put results in csv
+    for (uint64_t iter = 0; iter < run_results->size(); iter++) {
       fprintf(res_file, "%.3lf%s", get<RESULT_VALUE>(run_results->at(iter)),
             (iter == run_results->size() - 1 ? ",\n" : ","));
     }
+
+    // finish trial and destroy database
     delete(run_results);
     s = rocks_destroy();
     if (!s.ok()) {
@@ -96,13 +110,15 @@ int main(int argc, char **argv) {
     }
     switch(c) {
       case 'b':
-        begin_size = atoi(optarg);
+        begin_size = (uint64_t) atoi(optarg);
         break;
       case 's':
-        max_size = atoi(optarg) < max_size ? atoi(optarg) : max_size;
+        max_size = (uint64_t) atoi(optarg) < max_size ?
+          (uint64_t) atoi(optarg) : max_size;
         break;
       case 't':
-        num_trials = atoi(optarg) < num_trials ? atoi(optarg) : num_trials;
+        num_trials = (uint16_t) atoi(optarg) < num_trials ?
+          (uint16_t) atoi(optarg) : num_trials;
         break;
       case 'n':
         results_name = string(optarg);
@@ -120,7 +136,7 @@ int main(int argc, char **argv) {
   rocks_destroy(); // just in case it survived from a midway cutoff
 
   // run the benchmarks
-  for (int i = begin_size; i <= max_size; i *= 10) {
+  for (uint64_t i = begin_size; i <= max_size; i *= 10) {
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
     benchmark_wrapper(i, i / (double) 2,
