@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
   results_name = DEFAULT_RESULTS_NAME;
 
   int c;
-  while((c = getopt(argc, argv, "n:b:s:t:")) != -1) {
+  while((c = getopt(argc, argv, "n:b:s:t:d")) != -1) {
     if (c == 'b' || c == 's' || c == 't') {
       if (!isdigit(optarg[0])) eexit("Entered non-int for int argument\n");
     }
@@ -125,6 +125,9 @@ int main(int argc, char **argv) {
         if (results_name.compare("") == 0) {
           eexit("Must have prefix for results folder name\n");
         }
+        break;
+      case 'd':
+        debug_enable();
         break;
     }
   }
