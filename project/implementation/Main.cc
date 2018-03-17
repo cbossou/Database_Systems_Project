@@ -63,9 +63,9 @@ int benchmark_wrapper(uint64_t size, double average, string bench_name,
     }
 
     // run the benchmark
-    debug_printf(("Starting trial " + to_string(i)).c_str());
+    debug_printf(("Starting trial " + to_string(i) + "\n").c_str());
     vector<tuple<string, double>> *run_results = bench_func(size, average);
-    debug_printf(("Finishing trial " + to_string(i)).c_str());
+    debug_printf(("Finishing trial " + to_string(i) + "\n").c_str());
 
     if(i == 0) { // insert header line of csv
       for (uint64_t iter = 0; iter < run_results->size(); iter++) {

@@ -61,6 +61,7 @@ CPP = $(CXX)
 CPPCOMP = -c
 CPPLINK = -o
 CPPCOMPFLAGS = --std=c++11 -Wall -Werror -pedantic
+CPPCOMPFLAGS += -DDEBUG
 CPPCOMPFLAGS += $(ROCKSDBCOMPFLASGS)
 CPPLINKFLAGS = -lboost_filesystem -lboost_system
 CPPLINKFLAGS += $(ROCKSDBLINKFLAGS)
