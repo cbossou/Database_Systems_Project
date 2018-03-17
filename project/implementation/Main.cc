@@ -52,7 +52,7 @@ int benchmark_wrapper(uint64_t size, double average, string bench_name,
   boost::filesystem::create_directory(dir);
   FILE *res_file = fopen((TEST_PATH_STR(bench_name) + bench_name +
         to_string(size) + string(".csv")).c_str(), "w");
-  normal_printf("Running %d trials for %s(size=%d,average=%.3lf):\n",
+  normal_printf("Running %u trials for %s(size=%ld,average=%.3lf):\n",
       num_trials, bench_name.c_str(), size, average);
 
   for (uint16_t i = 0; i < num_trials; i++) {
@@ -63,9 +63,11 @@ int benchmark_wrapper(uint64_t size, double average, string bench_name,
     }
 
     // run the benchmark
-    debug_printf(("Starting trial " + to_string(i) + "\n").c_str());
+    debug_printf("Starting trial %u for %s(size=%lu,average=%.3lf):\n",
+      i + 1, bench_name.c_str(), size, average);
     vector<tuple<string, double>> *run_results = bench_func(size, average);
-    debug_printf(("Finishing trial " + to_string(i) + "\n").c_str());
+    debug_printf("Finishing trial %u for %s(size=%lu,average=%.3lf):\n",
+      i + 1, bench_name.c_str(), size, average);
 
     if(i == 0) { // insert header line of csv
       for (uint64_t iter = 0; iter < run_results->size(); iter++) {

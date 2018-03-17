@@ -38,6 +38,7 @@ void warn_printf(const char *fmt, ...) {
 
 // prints using yellow color if debug is permitted
 void debug_printf(const char *fmt, ...) {
+  if (!debug) return;
   va_list args;
   va_start(args, fmt);
   printf(ANSI_COLOR_YELLOW);
