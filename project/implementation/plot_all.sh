@@ -31,4 +31,4 @@ for results in $(ls | grep '_results$'); do
   done
 done
 
-echo "Finished analyzing results"
+echo "Finished graphing results"

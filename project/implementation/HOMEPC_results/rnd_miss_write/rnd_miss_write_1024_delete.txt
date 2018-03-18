@@ -1,0 +1,8 @@
+1:[2018-03-18 06:28:10] <info> Preset mode activated: quick
+2:[2018-03-18 06:28:10] <info> Setting the limit of autocorrelation coefficient to 0.8
+sample_size 10
+mean 1.085000
+optimal_subsession_size 1
+CI 0.040880
+variance 0.000816
+subsession_autocorrelation_coefficient 0.264698
