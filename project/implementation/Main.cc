@@ -154,7 +154,27 @@ int main(int argc, char **argv) {
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
     benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(seq_hit_write), TEST_ADDR(seq_hit_write));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(seq_hit_delete), TEST_ADDR(seq_hit_delete));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(seq_miss_read), TEST_ADDR(seq_miss_read));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(seq_miss_write), TEST_ADDR(seq_miss_write));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(seq_miss_delete), TEST_ADDR(seq_miss_delete));
+    benchmark_wrapper(i, i / (double) 2,
         TEST_STR(rnd_hit_read), TEST_ADDR(rnd_hit_read));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(rnd_hit_write), TEST_ADDR(rnd_hit_write));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(rnd_hit_delete), TEST_ADDR(rnd_hit_delete));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(rnd_miss_read), TEST_ADDR(rnd_miss_read));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(rnd_miss_write), TEST_ADDR(rnd_miss_write));
+    benchmark_wrapper(i, i / (double) 2,
+        TEST_STR(rnd_miss_delete), TEST_ADDR(rnd_miss_delete));
   }
   return 0;
 }
