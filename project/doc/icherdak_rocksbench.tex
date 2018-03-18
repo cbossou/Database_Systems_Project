@@ -85,22 +85,24 @@
     Abbreviation & Expanded Phrase or meaning\\ \hline \hline
     DBMS & Database Management System\\ \hline
     SLA & Service Level Agreement\\ \hline
+    WBL\cite{Arulraj:2016:WL:3025111.3025116} & Write Behind Logging \\ \hline
   \end{tabular}
 \end{center}
 
 \section{Introduction}
 \label{sec:overview}
 
-RocksDB is a popular DBMS used in applications ranging from storing data for
-Netflix to being a component of other database services like MongoDB. This is
-very impressive as RocksDB was only designed specifically for Facebook's needs:
-to lessen the bottleneck of storage space. The general philosophy behind RocksDB
-is that as long as the SLA is met, all optimizations should be focused on
-decreasing storage space. However, since the best DBMS depends on the use
-case\cite{278:lecture}, it is not completely clear as to what situations
-would best make use of RocksDB. I present RocksBench, a simple benchmark that
-aims to give better insight into the applications where RocksDB would be
-especially effective and those where another system may be a better fit.
+RocksDB\cite{rocksdb} is a popular DBMS used in applications ranging from
+storing data for Netflix to being a component of other database services like
+MongoDB. This is very impressive as RocksDB was only designed specifically for
+Facebook's needs: to lessen the bottleneck of storage space. The general
+philosophy behind RocksDB is that as long as the SLA is met, all optimizations
+should be focused on decreasing storage space. However, since the best DBMS
+depends on the use case\cite{278:lecture}, it is not completely clear as to what
+situations would best make use of RocksDB. I present RocksBench, a simple
+benchmark that aims to give better insight into the applications where RocksDB
+would be especially effective and those where another system may be a better
+fit.
 
 RocksBench uses various combinations of calls to RocksDB functions. However, it
 allows the user to tune parameters to test in as large or small scale as they
@@ -157,9 +159,10 @@ their most major benefit was thought to be decreased random writes to storage.
 
 \subsection{RocksDB}
 
-The RocksDB paper gave a lot of insight into how their system was implemented
-and how it worked in practice, even though it didn't provide many particularly
-novel ideas.
+RocksDB\cite{rocksdb} started as a fork of Google's LevelDB\cite{leveldb} and
+has made major improvements as well as gained major popularity. The RocksDB
+paper gave a lot of insight into how their system was implemented and how it
+worked in practice, even though it didn't provide many particularly novel ideas.
 
 A major concern I had with the RocksDB paper was the evaluation section. It's
 difficult to fairly compare RocksDB with another system since RocksDB only
@@ -168,6 +171,35 @@ kind of irrelevant in this regard. The only metric that mattered was storage
 size which wasn't any better than InnoDB (with zlib compression) and TokuDB
 (with no compression). As such, the message appears to be that RocksDB maintains
 reasonable storage optimization while also giving reasonable performance.
+
+\section{Motivation}
+
+The motivation behind this project was to try to observe some special use cases
+of RocksDB and make interesting conclusion about them. In addition, the
+motivation was to fulfill the requirements of my class project. Initially the
+project had the following levels of expectation, where I would say that I have
+very substantially completed level A.
+
+\subsection{Level A}
+
+Characterization of major use cases of RocksDB and discussion of optimizations
+that would further increase the range of use cases. This involves running
+various benchmarks and analysis of the results as described in
+\ref{subsec:characterization_tests}.
+
+\subsection{Level B}
+
+This involves the work proposed in Level A as well as tests on an optimized
+version of RocksDB. This optimization would likely be a modified version of
+RocksDB so that it runs on NVRAM as described in \ref{subsec:nvram}.
+
+\subsection{Level C}
+
+This would involve Level A, B, and the application of Levels A and B to LevelDB.
+Finally, a comparison of the use cases between the two systems which will simply
+include the Level A analysis of both systems. This would also include a
+discussion of the cost-benefit of some of the features added to RocksDB which
+LevelDB did not have.
 
 \section{RocksBench}
 
@@ -189,18 +221,18 @@ results.
     \hline
     Test Name & R:W:D Ratio & Hit Rate & Data \\
     \hline \hline
-    seq\_hit\_read & 1000:10:5 & High & Sequential \\ \hline
-    seq\_hit\_write & 10:1000:5 & High & Sequential \\ \hline
-    seq\_hit\_delete & 100:10:50 & High & Sequential \\ \hline
-    seq\_miss\_read & 1000:10:5 & Low & Sequential \\ \hline
-    seq\_miss\_write & 10:1000:5 & Low & Sequential \\ \hline
-    seq\_miss\_delete & 100:10:50 & Low & Sequential \\ \hline
-    rnd\_hit\_read & 1000:10:5 & High & Random \\ \hline
-    rnd\_hit\_write & 10:1000:5 & High & Random \\ \hline
-    rnd\_hit\_delete & 100:10:50 & High & Random \\ \hline
-    rnd\_miss\_read & 1000:10:5 & Low & Random \\ \hline
-    rnd\_miss\_write & 10:1000:5 & Low & Random \\ \hline
-    rnd\_miss\_delete & 100:10:50 & Low & Random \\ \hline
+    seq\_hit\_read & 1000:10:5 & High & Seq \\ \hline
+    seq\_hit\_write & 10:1000:5 & High & Seq \\ \hline
+    seq\_hit\_delete & 100:10:50 & High & Seq \\ \hline
+    seq\_miss\_read & 1000:10:5 & Low & Seq \\ \hline
+    seq\_miss\_write & 10:1000:5 & Low & Seq \\ \hline
+    seq\_miss\_delete & 100:10:50 & Low & Seq \\ \hline
+    rnd\_hit\_read & 1000:10:5 & High & Rnd \\ \hline
+    rnd\_hit\_write & 10:1000:5 & High & Rnd \\ \hline
+    rnd\_hit\_delete & 100:10:50 & High & Rnd \\ \hline
+    rnd\_miss\_read & 1000:10:5 & Low & Rnd \\ \hline
+    rnd\_miss\_write & 10:1000:5 & Low & Rnd \\ \hline
+    rnd\_miss\_delete & 100:10:50 & Low & Rnd \\ \hline
   \end{tabular}
   \caption{The twelve different types of tests}
   \label{tab:types_of_tests}
@@ -229,10 +261,10 @@ around 65000.
     \hline
     Option & Description & input type \\
     \hline \hline
-    n & lets you specify a prefix for your results folder & string \\ \hline
+    n & specify prefix for results folder & string \\ \hline
     b & beginning size & int \\ \hline
     s & end size & int \\ \hline
-    m & multiply amount for test size each iteration & float \\ \hline
+    m & amount to increase (multiply) size & float \\ \hline
     t & number of trials & int \\ \hline
     d & debug & None \\ \hline
   \end{tabular}
@@ -296,19 +328,21 @@ A lot of graphs were generated due to the ease of use of RocksBench.
 Specifically, there were 72 graphs at the end of my experiments. This is because
 there is a graph for every operation (put, get, delete) for every type of test
 (for which there are 12) and for both computers (my home and lab computer).
-Thus, not all graphs are displayed here but they can be viewed here: \href{}{}.
+Thus, not all graphs are displayed here but they can be viewed here:
+\href{https://github.com/legendddhgf/Database_Systems_Project/tree/master/project/doc/Pictures}
+{RocksBench Graphs}.
 In addition, error bars are implemented but apparently 10 trials was sufficient
 to make most data points not even display the error bars.
 
 \subsection{Test Hardware}
 \label{subsec:test_hw}
 
-I will be running these tests on a virtual machine on my home desktop as well as
-on a direct boot of Linux on my lab machine. My home desktop has a AMD Ryzen R7
-1700 CPU, 32 GB 3000MHz DDR4 RAM, and a 500 GB primary storage SSD. The virtual
-machine will be using 8 CPU cores, 16 GB RAM, and 50 GB of my SSD. As for my lab
-PC, it has an Intel core i5-3550 CPU, 16 GB 1866MHz DDR3 RAM, a 500 GB SSD, ~250
-GB of which are being used for the Linux.
+I ran these tests on a virtual machine on my home desktop as well as on a direct
+boot of Linux on my lab machine. My home desktop has a AMD Ryzen R7 1700 CPU, 32
+GB 3000MHz DDR4 RAM, and a 500 GB primary storage SSD. The virtual machine will
+be using 8 CPU cores, 16 GB RAM, and 50 GB of my SSD. As for my lab PC, it has
+an Intel core i5-3550 CPU, 16 GB 1866MHz DDR3 RAM, a 500 GB SSD, ~250 GB of
+which are being used for the Linux.
 
 \subsection{Maximum Threshold}
 \label{subsec:max_threshold}
@@ -320,33 +354,81 @@ put(), or write, being the fastest.
 
 \subsection{Home PC}
 
-\begin{figure}[h]
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{Pictures/HOMEPC/seq_miss_read_complete_get.png}
-  \label{fig:seq_miss_read_get}
-\end{figure}[h]
-\begin{figure}[h]
+  \caption{home\_seq\_miss\_read\_get}
+  \label{fig:home_seq_miss_read_get}
+\end{figure}
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{Pictures/HOMEPC/seq_miss_read_complete_put.png}
-  \label{fig:seq_miss_read_put}
-\end{figure}[h]
+  \caption{home\_seq\_miss\_read\_put}
+  \label{fig:home_seq_miss_read_put}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/HOMEPC/rnd_hit_delete_complete_put.png}
+  \caption{home\_rnd\_hit\_delete\_put}
+  \label{fig:home_rnd_hit_delete_put}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/HOMEPC/rnd_hit_delete_complete_get.png}
+  \caption{home\_rnd\_hit\_delete\_get}
+  \label{fig:home_rnd_hit_delete_get}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/HOMEPC/rnd_hit_delete_complete_delete.png}
+  \caption{home\_rnd\_hit\_delete\_delete}
+  \label{fig:home_rnd_hit_delete_delete}
+\end{figure}
 
 This computer performed much better, likely because of its more modern hardware.
 Interestingly enough, it didn't seem to make full use of resources. For any
-given test put() was the fastest except for one case: seq\_miss\_get where get()
-was multiple orders of magnitude slower. This can
+given test put() was the fastest except for one case: seq\_miss\_read where get()
+was multiple orders of magnitude slower. This can be seen in figures
+\ref{fig:seq_miss_read_get} and \ref{fig:seq_miss_read_put}.
 
 \subsection{Lab PC}
 
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/LABPC/seq_miss_read_complete_get.png}
+  \caption{lab\_seq\_miss\_read\_get}
+  \label{fig:lab_seq_miss_read_get}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/LABPC/seq_miss_read_complete_put.png}
+  \caption{lab\_seq\_miss\_read\_put}
+  \label{fig:lab_seq_miss_read_put}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/LABPC/rnd_hit_delete_complete_put.png}
+  \caption{lab\_rnd\_hit\_delete\_put}
+  \label{fig:lab_rnd_hit_delete_put}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/LABPC/rnd_hit_delete_complete_get.png}
+  \caption{lab\_rnd\_hit\_delete\_get}
+  \label{fig:lab_rnd_hit_delete_get}
+\end{figure}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{Pictures/LABPC/rnd_hit_delete_complete_delete.png}
+  \caption{lab\_rnd\_hit\_delete\_delete}
+  \label{fig:lab_rnd_hit_delete_delete}
+\end{figure}
+
+
+
 This computer was making heavy use of resources, but even so it was
-unsurprisingly slower.
+unsurprisingly slower due to comparatively dated hardware. It had a similar
+experience specifically with seq\_miss\_read which can be seen in figures
+\ref{fig:lab_seq_miss_read_get} and \ref{fig:lab_seq_miss_read_put}.
 
 \subsection{Result Insights}
 \label{subsec:res_insights}
 
 I observed some interesting results over the course of the variety of tests
-performed. Surprisingly, get is still very fast in many situations: contrary to
-what one would expect from a LSM tree. However, delete was perhaps the biggest
-hit to latency as it would often take very long times for few deletes relative
-to reads and writes
+performed. Surprisingly, get() is still very fast in many situations: contrary
+to what one would expect from a LSM tree. However, delete was perhaps the
+biggest hit to latency as it would often take very long times for few deletes
+relative to reads and writes
 
 Some work could potentially go into figuring out the most optimal hardware. It
 was noted that when running tests on the lab computer, one core was often at
@@ -364,6 +446,7 @@ resources.
 \label{sec:future_work}
 
 \subsection{RocksDB using NVRAM}
+\label{subsec:nvram}
 
 Many additional optimizations are available to systems that have NVRAM. The most
 interesting ones appear to be WBL and the ability to not always have to flush
@@ -400,27 +483,15 @@ As mentioned before like in section \ref{subsec:res_insights}, there may be more
 nuance than has ever been considered regarding the kinds of hardware that makes
 the database system operate more efficiently.
 
-\subsection{Level A}
+\section{Conclusion and Acknowledgments}
 
-Characterization of major use cases of RocksDB and discussion of optimizations
-that would further increase the range of use cases. This involves running
-various benchmarks and analysis of the results as described in
-\ref{subsec:characterization_tests}.
-
-\subsection{Level B}
-
-This involves the work proposed in Level A as well as tests on an optimized
-version of RocksDB. This optimization would likely be a modified version of
-RocksDB so that it runs on NVRAM as described in \ref{subsec:opt_rocksdb}.
-
-\subsection{Level C}
-
-This would involve Level A, B, and the application of Levels A and B to LevelDB.
-Finally, a comparison of the use cases between the two systems which will simply
-include the Level A analysis of both systems. This will also include a
-discussion of the cost-benefit of some of the features added to RocksDB which
-LevelDB did not have.
-
+I want to thank Shel for teaching this class and for being such a considerate
+advisor during the course. The help I received to determine what my project
+would be as well as to plan out the full extent of the project was beyond
+anything I have received from any instructor in the past. I would also like to
+thank Daniel Bittman for being so active in the class and keeping the knowledge
+flowing when no one else had any input. I have returned the favor by adding
+error bars to my graphs.
 
 \bibliographystyle{abbrv}
 \bibliography{rocksbench,bib/csrg}
