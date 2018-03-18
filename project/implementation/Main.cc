@@ -37,10 +37,15 @@
 #define DEFAULT_RESULTS_NAME "default"
 #endif
 
+#ifndef DEFAULT_MULTIPLIER
+#define DEFAULT_MULTIPLIER 1.5
+#endif
+
 using namespace std;
 
 uint64_t begin_size, max_size;
 uint16_t num_trials;
+double multiplier;
 string results_name;
 
 int benchmark_wrapper(uint64_t size, double average, string bench_name,
@@ -104,13 +109,17 @@ int main(int argc, char **argv) {
   max_size = MAX_BASE_SIZE;
   num_trials = MAX_NUM_TRIALS;
   results_name = DEFAULT_RESULTS_NAME;
+  multiplier = DEFAULT_MULTIPLIER;
 
   int c;
-  while((c = getopt(argc, argv, "n:b:s:t:d")) != -1) {
+  while((c = getopt(argc, argv, "m:n:b:s:t:d")) != -1) {
     if (c == 'b' || c == 's' || c == 't') {
       if (!isdigit(optarg[0])) eexit("Entered non-int for int argument\n");
     }
     switch(c) {
+      case 'm':
+        multiplier = (uint8_t) atof(optarg);
+        break;
       case 'b':
         begin_size = (uint64_t) atoi(optarg);
         break;
@@ -141,7 +150,7 @@ int main(int argc, char **argv) {
   rocks_destroy(); // just in case it survived from a midway cutoff
 
   // run the benchmarks
-  for (uint64_t i = begin_size; i <= max_size; i *= 10) {
+  for (uint64_t i = begin_size; i <= max_size; i *= multiplier) {
     benchmark_wrapper(i, i / (double) 2,
         TEST_STR(seq_hit_read), TEST_ADDR(seq_hit_read));
     benchmark_wrapper(i, i / (double) 2,
