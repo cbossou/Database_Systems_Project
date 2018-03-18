@@ -20,7 +20,6 @@
 
 #define BASE_READ_HEAVY_WRITES 10
 #define BASE_READ_HEAVY_READS 1000
-#define BASE_READ_HEAVY_UPDATES 5
 #define BASE_READ_HEAVY_DELETES 5
 
 using namespace std;
@@ -48,22 +47,23 @@ vector<double> *make_rnd_data(uint64_t size, double average) {
 }
 
 // sequential, high hit rate, read heavy
-// write:read:update:delete :: 10:1000:5:5
+// write:read:delete :: 10:1000:5
 vector<tuple<string, double>> *seq_hit_read(uint64_t size, double average) {
-
-  vector<double> *v = make_seq_data(size, average - size/2);
-  vector<tuple<string, double>> *run_results =
-    new vector<tuple<string, double>>();
 
   int16_t bw = BASE_READ_HEAVY_WRITES;
   int16_t br = BASE_READ_HEAVY_READS;
-  int16_t bu = BASE_READ_HEAVY_UPDATES;
   int16_t bd = BASE_READ_HEAVY_DELETES;
+  uint64_t i = 0;
+
+  vector<double> *v = make_seq_data(size * bw, (average - size/2) * bw);
+  vector<tuple<string, double>> *run_results =
+    new vector<tuple<string, double>>();
 
   // perform writes
   time_acc = 0;
+  i = 0;
   for (uint16_t write_count = 0; write_count < bw; write_count++) {
-    for(uint64_t i = 0; i < size; i++) {
+    for(; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_put, to_string(data), to_string(data));
       if (!s.ok()) {
@@ -77,8 +77,9 @@ vector<tuple<string, double>> *seq_hit_read(uint64_t size, double average) {
 
   // perform reads
   time_acc = 0;
+  i = 0;
   for (uint16_t read_count = 0; read_count < br; read_count++) {
-    for (uint64_t i = 0; i < size; i++) {
+    for (i = 0; i < size; i++) { // reset i because we want everything to hit
       double data = v->at(i);
       string comp;
       time_func(rocks_get, to_string(data), &comp);
@@ -91,25 +92,11 @@ vector<tuple<string, double>> *seq_hit_read(uint64_t size, double average) {
   run_results->push_back(make_tuple("get_time [ms]",
         us_2_ms(average_time(time_acc, br))));
 
-  // perform updates
-  time_acc = 0;
-  for (uint16_t update_count = 0; update_count < bu; update_count++) {
-    for (uint64_t i = 0; i < size; i++) {
-      double data = v->at(i);
-      time_func(rocks_put, to_string(data), to_string(data));
-      if (!s.ok()) {
-        eexit("%s failed update for (%s,%d)\n",
-            __FUNCTION__, to_string(data), to_string(data));
-      }
-    }
-  }
-  run_results->push_back(make_tuple("update_time [ms]",
-        us_2_ms(average_time(time_acc, bu))));
-
   // perform deletes
   time_acc = 0;
+  i = 0;
   for (uint16_t delete_count = 0; delete_count < bd; delete_count++) {
-    for (uint64_t i = 0; i < size; i++) {
+    for (; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_delete, to_string(data));
       if (!s.ok()) {
@@ -167,21 +154,23 @@ vector<tuple<string, double>> *seq_miss_delete(uint64_t size, double average) {
 }
 
 // random, high hit rate, read heavy
-// write:read:update:delete :: 10:1000:5:5
+// write:read:delete :: 10:1000:5
 vector<tuple<string, double>> *rnd_hit_read(uint64_t size, double average) {
-  vector<double> *v = make_rnd_data(size, average);
-  vector<tuple<string, double>> *run_results =
-    new vector<tuple<string, double>>();
 
   int16_t bw = BASE_READ_HEAVY_WRITES;
   int16_t br = BASE_READ_HEAVY_READS;
-  int16_t bu = BASE_READ_HEAVY_UPDATES;
   int16_t bd = BASE_READ_HEAVY_DELETES;
+  uint64_t i = 0;
+
+  vector<double> *v = make_rnd_data(size * bw, (average * bw));
+  vector<tuple<string, double>> *run_results =
+    new vector<tuple<string, double>>();
 
   // perform writes
   time_acc = 0;
+  i = 0;
   for (uint16_t write_count = 0; write_count < bw; write_count++) {
-    for(uint64_t i = 0; i < size; i++) {
+    for(; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_put, to_string(data), to_string(data));
       if (!s.ok()) {
@@ -195,8 +184,9 @@ vector<tuple<string, double>> *rnd_hit_read(uint64_t size, double average) {
 
   // perform reads
   time_acc = 0;
+  i = 0;
   for (uint16_t read_count = 0; read_count < br; read_count++) {
-    for (uint64_t i = 0; i < size; i++) {
+    for (i = 0; i < size; i++) { // reset i because we want everything to hit
       double data = v->at(i);
       string comp;
       time_func(rocks_get, to_string(data), &comp);
@@ -209,25 +199,11 @@ vector<tuple<string, double>> *rnd_hit_read(uint64_t size, double average) {
   run_results->push_back(make_tuple("get_time [ms]",
         us_2_ms(average_time(time_acc, br))));
 
-  // perform updates
-  time_acc = 0;
-  for (uint16_t update_count = 0; update_count < bu; update_count++) {
-    for (uint64_t i = 0; i < size; i++) {
-      double data = v->at(i);
-      time_func(rocks_put, to_string(data), to_string(data));
-      if (!s.ok()) {
-        eexit("%s failed update for (%s,%d)\n",
-            __FUNCTION__, to_string(data), to_string(data));
-      }
-    }
-  }
-  run_results->push_back(make_tuple("update_time [ms]",
-        us_2_ms(average_time(time_acc, bu))));
-
   // perform deletes
   time_acc = 0;
+  i = 0;
   for (uint16_t delete_count = 0; delete_count < bd; delete_count++) {
-    for (uint64_t i = 0; i < size; i++) {
+    for (; i < size; i++) {
       double data = v->at(i);
       time_func(rocks_delete, to_string(data));
       if (!s.ok()) {
