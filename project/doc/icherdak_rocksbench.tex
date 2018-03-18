@@ -98,16 +98,16 @@ to lessen the bottleneck of storage space. The general philosophy behind RocksDB
 is that as long as the SLA is met, all optimizations should be focused on
 decreasing storage space. However, since the best DBMS depends on the use
 case(TODO CITE SHEL AND CLASS), it is not completely clear as to what situations
-would best make use of RocksDB. RocksBench is a simple benchmark that aims to
-give better insight into the applications where RocksDB would be especially
-effective and those where another system may be a better fit.
+would best make use of RocksDB. I present RocksBench, a simple benchmark that
+aims to give better insight into the applications where RocksDB would be
+especially effective and those where another system may be a better fit.
 
-
-LSM trees and hence is very write optimized
-
-\section{Motivation}
-
-\todo[inline]{TODO: this is basically the problem section}
+RocksBench uses various combinations of calls to RocksDB functions. However, it
+allows the user to tune parameters to test in as large or small scale as they
+would like. RocksBench provides results in csv files. Furthermore, there are a
+number of scripts provided to analyze the results as well as plot graphs. The
+analysis is done using ascar-pilot(TODO CITE THIS). The graphs are generated via
+python's matplotlib library.
 
 \section{Background}
 \label{sec:background}
@@ -128,8 +128,8 @@ consistent manner and the LSM-Tree was adapted based off one created by a
 Harvard PhD student. The benchmark was at best able to run 40000 inserts and
 40000 get calls with 100 trials in approximately 30 seconds. The order of
 inserts and get calls wasn't the same but the way they were run differed
-depending on the data structure. The hardware setup was as described in
-\ref{subsec:test_hw} as well as my laptop which had comparable results. Test
+depending on the data structure. The hardware setup was the home PC as described
+in \ref{subsec:test_hw} as well as my laptop which had comparable results. Test
 results included aggregate runtime of all inserts, aggregate runtime of all
 calls to get, and total in-memory size at the end of all insertions. It should
 be noted that I was able to run these experiments without having any issues with
@@ -163,11 +163,19 @@ size which wasn't any better than InnoDB (with zlib compression) and TokuDB
 (with no compression). As such, the message appears to be that RocksDB maintains
 reasonable storage optimization while also giving reasonable performance.
 
+\section{Motivation}
+
+\todo[inline]{TODO: this is basically the problem section}
+RocksDB is known for being a versatile database system. However, not much has
+been published to help provide an understanding of the nuance.
+
 \section{RocksBench}
 
 \subsection{Overview}
 
-A benchmark will be designed in C++. This benchmark will run a variety of
+This Benchmark was designed in C++ and provides command line arguments to let
+users customize options for the tests.
+
 different tests with varying ratios of operations (put/get/update/delete). A
 single experiment is defined as a single group of operations that is run with at
 least 100 trials. The purpose of doing multiple trials is to ensure accuracy of
@@ -188,15 +196,34 @@ of what information may be interesting. The limit on the number of operations /
 memory usage is dependent on that which is described in
 \ref{subsec:max_threshold}.
 
-\subsection{Test Hardware}
-\label{subsec:test_hw}
+\begin{table}[h!]
+  \begin{tabular}{ |c|c|c|c| }
+    \hline
+    Test Name & R:W:D Ratio & Hit Rate & Data \\
+    \hline \hline
+    seq\_hit\_read & 1000:10:5 & High & Sequential \\ \hline
+    seq\_hit\_write & 10:1000:5 & High & Sequential \\ \hline
+    seq\_hit\_delete & 100:10:50 & High & Sequential \\ \hline
+    seq\_miss\_read & 1000:10:5 & Low & Sequential \\ \hline
+    seq\_miss\_write & 10:1000:5 & Low & Sequential \\ \hline
+    seq\_miss\_delete & 100:10:50 & Low & Sequential \\ \hline
+    rnd\_hit\_read & 1000:10:5 & High & Random \\ \hline
+    rnd\_hit\_write & 10:1000:5 & High & Random \\ \hline
+    rnd\_hit\_delete & 100:10:50 & High & Random \\ \hline
+    rnd\_miss\_read & 1000:10:5 & Low & Random \\ \hline
+    rnd\_miss\_write & 10:1000:5 & Low & Random \\ \hline
+    rnd\_miss\_delete & 100:10:50 & Low & Random \\ \hline
+  \end{tabular}
+  \caption{The twelve different types of tests}
+  \label{tab:types_of_tests}
+\end{table}
 
-I will be running these tests on a virtual machine on my home desktop as well as
-on a direct boot of Linux on my lab machine. My home desktop has a AMD Ryzen R7
-1700 CPU, 32 GB 3000MHz DDR4 RAM, and a 500 GB primary storage SSD. The virtual
-machine will be using 8 CPU cores, 16 GB RAM, and 50 GB of my SSD. As for my lab
-PC, it has an Intel core i5-3550 CPU, 16 GB 1866MHz DDR3 RAM, a 500 GB SSD, ~250
-GB of which are being used for the Linux.
+There are twelve different kinds of tests as described in table
+\ref{tab:types_of_tests}. Each test strives to show the results of using a
+different kind of input set. In practice there is also a level at which database
+systems administrators can predict the kind of input they are primarily getting
+and optimize for that case. These tests could give some insight and help someone
+make a decision about whether RocksDB is right for them.
 
 \subsection{Maximum Threshold}
 \label{subsec:max_threshold}
@@ -211,11 +238,54 @@ pool of memory and storage will not be run. An idea of what this maximum
 threshold may be, will be more clear after reading
 \ref{subsec:personal_experience}.
 
+\subsection{Implementation}
+
+RocksBench was designed very carefully in the interest of modularity as well as
+to prevent unnecessary operations as the use of the RocksDB functions already
+slows the benchmark significantly. It is also relatively scalable: being able to
+perform tests with very large base sizes but the largest current tested size is
+around 65000.
+
+\begin{table}[h!]
+  \begin{tabular}{ |c|c|c|c| }
+    \hline
+    Option & Description & input type \\
+    \hline \hline
+    n & lets you specify a prefix for your results folder & string \\ \hline
+    b & beginning size & int \\ \hline
+    s & end size & int \\ \hline
+    m & multiply amount for test size each iteration & float \\ \hline
+    d & debug & None \\ \hline
+  \end{tabular}
+  \caption{A list of all the options available in RocksBench}
+  \label{tab:RocksBench_options}
+\end{table}
+
+The Main system allows a user to choose some options. These are listed in table
+\ref{tab:RocksBench_options}. Together with these options you can perform tests
+according to your needs.
+
 \subsection{Challenges}
 
 \subsubsection{Benchmark Design}
 
+Designing the benchmark took a large amount of time and consideration because at
+any given point the things that I would like to test may change. If the system
+was badly written, there would be a large amount of time spent on rewriting
+large portions of the system every time a change occurred.
+
 \subsubsection{Utilization of RocksDB library}
+
+The RocksDB library via the github repo didn't have the best example setup so
+some time was spent on coming up with a more generalist configuration.
+Originally, RocksDB intended for people to use their examples which were
+completely hard-coded to make use of the parent directory. I remade their
+examples and Makefiles so that compilation was based off the actual install
+directory. This was very good for me because by the time I wanted to make use of
+the library, I already knew exactly how to correctly link it to the install
+locations and make use of their custom configuration file. The other major
+challenge was the sheer number of ways that you can do a single put/get/delete
+which is why a lot of the tests I use have very simple functionality.
 
 \subsubsection{Test Coverage}
 
@@ -231,13 +301,19 @@ generation resulted in \textit{update} calls during what was supposed to be a
 \textit{put} test. As a result, I decided to remove \textit{update} tests from
 the variables.
 
-\subsection{Implementation}
-
-\todo[inline]{TODO}
-
-\section{Results}
+\section{Evaluation}
 
 You can find information about the hardware used in section \ref{subsec:test_hw}
+
+\subsection{Test Hardware}
+\label{subsec:test_hw}
+
+I will be running these tests on a virtual machine on my home desktop as well as
+on a direct boot of Linux on my lab machine. My home desktop has a AMD Ryzen R7
+1700 CPU, 32 GB 3000MHz DDR4 RAM, and a 500 GB primary storage SSD. The virtual
+machine will be using 8 CPU cores, 16 GB RAM, and 50 GB of my SSD. As for my lab
+PC, it has an Intel core i5-3550 CPU, 16 GB 1866MHz DDR3 RAM, a 500 GB SSD, ~250
+GB of which are being used for the Linux.
 
 \subsection{Home PC}
 
@@ -248,26 +324,65 @@ You can find information about the hardware used in section \ref{subsec:test_hw}
 \todo[inline]{TODO}
 
 \subsection{Result Insights}
+\label{subsec:res_insights}
 
 \todo[inline]{TODO}
 
 I observed some interesting results over the course of the variety of tests
-performed.
+performed. Surprisingly, get is very fast in many situations: contrary to what
+one would expect from a LSM tree.
+
+Some work could potentially go into figuring out the most optimal hardware. It
+was noted that when running tests on the lab computer, one core was often at
+100\% while others were down to around 20-30\% utilization. Perhaps this is an
+issue only in older processors but my home computer is actually experiencing the
+opposite effect. One might expect my home computer to be much faster than the
+lab computer given that the former runs at around 10\% CPU usage. However, even
+though it is a little faster, it doesn't seem to be making good use of hardware.
+Another factor that may cause this is the virtual machine. However, in the past
+I have seen disk and memory usage go up to 100\% due to processes in a virtual
+machine and currently RocksBench has a negligible affect on both of these
+resources.
 
 \section{Future Work}
 \label{sec:future_work}
 
-I will primarily be trying to optimize RocksDB by making it utilize NVRAM
-instead of traditional DRAM. This will be done by using Intel's guide to
-emulating NVRAM
-\footnote{
+\subsection{RocksDB using NVRAM}
+
+Many additional optimizations are available to systems that have NVRAM. The most
+interesting ones appear to be WBL and the ability to not always have to flush
+data from memory to storage. Some interesting results could be achieved if a
+variety of ratios of RAM vs NVRAM were used to benchmark a NVRAM functioning
+RocksDB.
+
+RocksDB can be modified to use NVRAM. Furthermore, even with difficulty to
+attain physical NVRAM, it is possible to emulate it using Intel's step-by-step
+guide\footnote{
   \href{https://software.intel.com/en-us/articles/how-to-emulate-persistent-memory-on-an-intel-architecture-server/}
   {Intel NVRAM Emulation Guide}}.
-I plan to use 4 GB of RAM as NVRAM. Please refer to \ref{subsec:test_hw} to
-understand the underlying hardware setup of the system. I will use Intel's PMDK
-library to utilize the the NVRAM. Specifically, I will be making use of the
-libpmemobj\footnote{\href{http://pmem.io/pmdk/libpmemobj/}
-{PMDK libpmemobj documentation}}.
+To make use of the NVRAM, regardless of whether it's emulated: the Intel PMDK
+library can be used (formerly known as NVML). A perfectly sufficient module
+provided by PMDK called libpmemobj
+\footnote{\href{http://pmem.io/pmdk/libpmemobj/}
+{PMDK libpmemobj documentation}} allows a user to make use of syntax reminiscent
+of malloc and free while also providing a persist call.
+
+\subsection{Expanding coverage of the testbench}
+
+RocksBench currently only makes use of very simple calls to RocksDB using the
+default options. On one hand this isn't so bad since many users may choose to do
+the same since Facebook has chosen default options quite reasonably and because
+of the overwhelming variety of methods to make use of the Database. However,
+transactions would likely also be used as well as methods common with the
+backwards compatible LevelDB API. Luckily, the structure of the database is very
+modular and would make such additions relatively painless once they are
+independently planned and designed.
+
+\subsection{Research into optimal hardware setup}
+
+As mentioned before like in section \ref{subsec:res_insights}, there may be more
+nuance than has ever been considered regarding the kinds of hardware that makes
+the database system operate more efficiently.
 
 \subsection{Level A}
 
