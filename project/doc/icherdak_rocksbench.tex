@@ -97,7 +97,7 @@ very impressive as RocksDB was only designed specifically for Facebook's needs:
 to lessen the bottleneck of storage space. The general philosophy behind RocksDB
 is that as long as the SLA is met, all optimizations should be focused on
 decreasing storage space. However, since the best DBMS depends on the use
-case(TODO CITE SHEL AND CLASS), it is not completely clear as to what situations
+case\cite{278:lecture}, it is not completely clear as to what situations
 would best make use of RocksDB. I present RocksBench, a simple benchmark that
 aims to give better insight into the applications where RocksDB would be
 especially effective and those where another system may be a better fit.
@@ -106,7 +106,7 @@ RocksBench uses various combinations of calls to RocksDB functions. However, it
 allows the user to tune parameters to test in as large or small scale as they
 would like. RocksBench provides results in csv files. Furthermore, there are a
 number of scripts provided to analyze the results as well as plot graphs. The
-analysis is done using ascar-pilot(TODO CITE THIS). The graphs are generated via
+analysis is done using ascar-pilot\cite{li:pilot}. The graphs are generated via
 python's matplotlib library.
 
 \section{Background}
@@ -117,10 +117,10 @@ python's matplotlib library.
 
 I have experience setting up Benchmarks in C/C++ for various data structures.
 Specifically, I have been able to send multiple experiment trials to a file and
-have used pilot, a tool made by the SSRC (my research lab), to generate
-analytics for the results (such as standard deviation, average, etc). I have
-also been able to graph these results using matplotlib. I plan to apply this
-experience to design a similar process of running experiments on RocksDB.
+have used pilot, to generate analytics for the results (such as standard
+deviation, average, etc). I have also been able to graph these results using
+matplotlib. I applied this experience to design an even more dynamic process of
+running experiments for RocksDB.
 
 I previously did experiments on four different data structures: Singly Linked
 List, Vector, B-Tree, and LSM-Tree. The first three were written by myself in a
@@ -138,9 +138,17 @@ pool. Valgrind reported approximately 25 GB of dynamic memory allocating/freeing
 over the course of all trials/experiments in the case of 40000 inserts/100
 trials.
 
-\subsection{LSM Trees}
+\subsection{Ascar-Pilot}
 
-\todo[inline]{TODO}
+Pilot\cite{li:pilot} is an analysis tool created by Yan Li in coordination with
+the SSRC. There are three forms: a command line tool for analyzing spreadsheets,
+a command line tool for timing a shell command, and a library which can be used
+in C++ to time functions. I went with the first system since I was perfectly
+fine generating timing data on my own. Pilot was hence used to provide averages
+over multiple trials for each type of test as well as variance which was used to
+generate error bars for graphs.
+
+\subsection{LSM Trees}
 
 Over the course of the development and deployment of RocksDB, Facebook
 determined that the most useful properties of the LSM tree were decreased write
@@ -148,8 +156,6 @@ and space amplification. Before this discovery, LSM trees were less popular and
 their most major benefit was thought to be decreased random writes to storage.
 
 \subsection{RocksDB}
-
-\todo[inline]{TODO}
 
 The RocksDB paper gave a lot of insight into how their system was implemented
 and how it worked in practice, even though it didn't provide many particularly
@@ -162,12 +168,6 @@ kind of irrelevant in this regard. The only metric that mattered was storage
 size which wasn't any better than InnoDB (with zlib compression) and TokuDB
 (with no compression). As such, the message appears to be that RocksDB maintains
 reasonable storage optimization while also giving reasonable performance.
-
-\section{Motivation}
-
-\todo[inline]{TODO: this is basically the problem section}
-RocksDB is known for being a versatile database system. However, not much has
-been published to help provide an understanding of the nuance.
 
 \section{RocksBench}
 
@@ -183,18 +183,6 @@ results.
 
 \subsection{Characterization of tests}
 \label{subsec:characterization_tests}
-
-I will be running various ratios of each operation for different experiments. I
-plan to vary read:write:delete and read:update:delete ratios. I am aiming to
-have at least eight graphs of different scenarios of these variances. Some I
-have planned are (these are planned estimates) for read:write:delete:: (high hit
-rate) 1000:10:5, 10:1000:500, (low hit rate) 1000:10:5, 10:1000:500; and for
-update:write:delete:: (high hit rate) 1000:10:5, 10:1000:500, (low hit rate)
-1000:10:5, 10:1000:500. These are currently just some ideas I have and can
-easily come up with different variations as my experiments help me get an idea
-of what information may be interesting. The limit on the number of operations /
-memory usage is dependent on that which is described in
-\ref{subsec:max_threshold}.
 
 \begin{table}[h!]
   \begin{tabular}{ |c|c|c|c| }
@@ -225,18 +213,8 @@ systems administrators can predict the kind of input they are primarily getting
 and optimize for that case. These tests could give some insight and help someone
 make a decision about whether RocksDB is right for them.
 
-\subsection{Maximum Threshold}
-\label{subsec:max_threshold}
-
-The range of tests will be as large as possible. Every experiment will take no
-longer than 1 minute: any experiment that largely exceeds this amount of time
-will not be kept. Note that every experiment will include at least 100 trials
-and the 1 minute requirement includes all trials. Tests that complete in
-significantly less than 1 minute will accordingly be set to run a larger number
-of trials. In addition, obviously any tests that require more than my available
-pool of memory and storage will not be run. An idea of what this maximum
-threshold may be, will be more clear after reading
-\ref{subsec:personal_experience}.
+The limit on the number of operations / memory usage is dependent on that which
+is described in \ref{subsec:max_threshold}.
 
 \subsection{Implementation}
 
@@ -255,6 +233,7 @@ around 65000.
     b & beginning size & int \\ \hline
     s & end size & int \\ \hline
     m & multiply amount for test size each iteration & float \\ \hline
+    t & number of trials & int \\ \hline
     d & debug & None \\ \hline
   \end{tabular}
   \caption{A list of all the options available in RocksBench}
@@ -263,7 +242,17 @@ around 65000.
 
 The Main system allows a user to choose some options. These are listed in table
 \ref{tab:RocksBench_options}. Together with these options you can perform tests
-according to your needs.
+according to your needs. RocksBench will run all twelve of the tests described
+in section \ref{subsec:characterization_tests} for all sizes starting at the
+beginning value, multiplying by the multiplier each time, and going until the
+value is bigger than the end size. The folder will be <custom\_name>\_results
+where <custom\_name> is "default" by default. The main system will receive a
+vector from each trial and create the first line of the file such that it is the
+header and all the following lines will only contain data from each trial. The
+files are organized in a hierarchy of
+custom\_result/test\_type/test\_type\_size.csv. The number of trials can also be
+changed to reflect how many times a test should be retried for additional
+accuracy.
 
 \subsection{Challenges}
 
@@ -303,7 +292,13 @@ the variables.
 
 \section{Evaluation}
 
-You can find information about the hardware used in section \ref{subsec:test_hw}
+A lot of graphs were generated due to the ease of use of RocksBench.
+Specifically, there were 72 graphs at the end of my experiments. This is because
+there is a graph for every operation (put, get, delete) for every type of test
+(for which there are 12) and for both computers (my home and lab computer).
+Thus, not all graphs are displayed here but they can be viewed here: \href{}{}.
+In addition, error bars are implemented but apparently 10 trials was sufficient
+to make most data points not even display the error bars.
 
 \subsection{Test Hardware}
 \label{subsec:test_hw}
@@ -315,22 +310,43 @@ machine will be using 8 CPU cores, 16 GB RAM, and 50 GB of my SSD. As for my lab
 PC, it has an Intel core i5-3550 CPU, 16 GB 1866MHz DDR3 RAM, a 500 GB SSD, ~250
 GB of which are being used for the Linux.
 
+\subsection{Maximum Threshold}
+\label{subsec:max_threshold}
+
+The range of tests were as large as possible. Experiments were run from 1 to
+32768 base size. The next size up would actually be stuck on the first trial of
+seq\_miss\_read which makes sense because this test overturned the general rule of
+put(), or write, being the fastest.
+
 \subsection{Home PC}
 
-\todo[inline]{TODO}
+\begin{figure}[h]
+  \includegraphics[width=\linewidth]{Pictures/HOMEPC/seq_miss_read_complete_get.png}
+  \label{fig:seq_miss_read_get}
+\end{figure}[h]
+\begin{figure}[h]
+  \includegraphics[width=\linewidth]{Pictures/HOMEPC/seq_miss_read_complete_put.png}
+  \label{fig:seq_miss_read_put}
+\end{figure}[h]
+
+This computer performed much better, likely because of its more modern hardware.
+Interestingly enough, it didn't seem to make full use of resources. For any
+given test put() was the fastest except for one case: seq\_miss\_get where get()
+was multiple orders of magnitude slower. This can
 
 \subsection{Lab PC}
 
-\todo[inline]{TODO}
+This computer was making heavy use of resources, but even so it was
+unsurprisingly slower.
 
 \subsection{Result Insights}
 \label{subsec:res_insights}
 
-\todo[inline]{TODO}
-
 I observed some interesting results over the course of the variety of tests
-performed. Surprisingly, get is very fast in many situations: contrary to what
-one would expect from a LSM tree.
+performed. Surprisingly, get is still very fast in many situations: contrary to
+what one would expect from a LSM tree. However, delete was perhaps the biggest
+hit to latency as it would often take very long times for few deletes relative
+to reads and writes
 
 Some work could potentially go into figuring out the most optimal hardware. It
 was noted that when running tests on the lab computer, one core was often at
@@ -404,5 +420,9 @@ Finally, a comparison of the use cases between the two systems which will simply
 include the Level A analysis of both systems. This will also include a
 discussion of the cost-benefit of some of the features added to RocksDB which
 LevelDB did not have.
+
+
+\bibliographystyle{abbrv}
+\bibliography{rocksbench,bib/csrg}
 
 \end{document}
