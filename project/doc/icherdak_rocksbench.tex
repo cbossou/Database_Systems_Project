@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[twocolumn,11pt]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage{lipsum}                     % Dummytext
@@ -64,8 +64,8 @@
 \newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
 \newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
 
-\usepackage{setspace}
-\doublespacing
+%\usepackage{setspace}
+%\doublespacing
 
 \title{RocksBench\\CMPS 278}
 \author{Isaak Cherdak}
@@ -191,10 +191,12 @@ memory usage is dependent on that which is described in
 \subsection{Test Hardware}
 \label{subsec:test_hw}
 
-I will be running these tests on a virtual machine on my home desktop. My home
-desktop has a AMD Ryzen R7 1700 CPU, 32 GB 3000MHz DDR4 RAM, and a 500 GB
-primary storage SSD. The virtual machine will be using 8 CPU cores, 16 GB RAM,
-and 50 GB of my SSD.
+I will be running these tests on a virtual machine on my home desktop as well as
+on a direct boot of Linux on my lab machine. My home desktop has a AMD Ryzen R7
+1700 CPU, 32 GB 3000MHz DDR4 RAM, and a 500 GB primary storage SSD. The virtual
+machine will be using 8 CPU cores, 16 GB RAM, and 50 GB of my SSD. As for my lab
+PC, it has an Intel core i5-3550 CPU, 16 GB 1866MHz DDR3 RAM, a 500 GB SSD, ~250
+GB of which are being used for the Linux.
 
 \subsection{Maximum Threshold}
 \label{subsec:max_threshold}
@@ -209,18 +211,50 @@ pool of memory and storage will not be run. An idea of what this maximum
 threshold may be, will be more clear after reading
 \ref{subsec:personal_experience}.
 
+\subsection{Challenges}
+
+\subsubsection{Benchmark Design}
+
+\subsubsection{Utilization of RocksDB library}
+
+\subsubsection{Test Coverage}
+
+Determining the tests to run was very difficult both due to initial concerns and
+those that turned up over the course of the project. Initially, I was aware that
+there would be a large number of parameters and as a result, it would be
+impossible to make a completely comprehensive test. This led me to choose to
+leave options as defaults, which may be something that plenty of users would do
+for the same reason. I also initially planned to use varying ratios of
+\textit{put}, \textit{get}, \textit{update}, and \textit{delete} calls. However,
+as the project progressed I realized that the tests that involved random number
+generation resulted in \textit{update} calls during what was supposed to be a
+\textit{put} test. As a result, I decided to remove \textit{update} tests from
+the variables.
+
 \subsection{Implementation}
 
 \todo[inline]{TODO}
 
-\subsection{Results}
+\section{Results}
+
+You can find information about the hardware used in section \ref{subsec:test_hw}
+
+\subsection{Home PC}
+
+\todo[inline]{TODO}
+
+\subsection{Lab PC}
+
+\todo[inline]{TODO}
+
+\subsection{Result Insights}
 
 \todo[inline]{TODO}
 
 I observed some interesting results over the course of the variety of tests
 performed.
 
-\subsection{Future Work}
+\section{Future Work}
 \label{sec:future_work}
 
 I will primarily be trying to optimize RocksDB by making it utilize NVRAM
