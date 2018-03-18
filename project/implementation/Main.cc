@@ -50,7 +50,7 @@ int benchmark_wrapper(uint64_t size, double average, string bench_name,
   // create a folder for these tests in results
   boost::filesystem::path dir(TEST_PATH(bench_name));
   boost::filesystem::create_directory(dir);
-  FILE *res_file = fopen((TEST_PATH_STR(bench_name) + bench_name +
+  FILE *res_file = fopen((TEST_PATH_STR(bench_name) + bench_name + "_" +
         to_string(size) + string(".csv")).c_str(), "w");
   normal_printf("Running %u trials for %s(size=%ld,average=%.3lf):\n",
       num_trials, bench_name.c_str(), size, average);
