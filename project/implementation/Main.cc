@@ -26,7 +26,7 @@
 #endif
 
 #ifndef MAX_BASE_SIZE
-#define MAX_BASE_SIZE 1000000
+#define MAX_BASE_SIZE 40000
 #endif
 
 #ifndef MAX_NUM_TRIALS
