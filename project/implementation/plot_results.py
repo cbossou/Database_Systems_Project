@@ -26,23 +26,21 @@ if not os.path.isfile(argv[1]):
 data = np.genfromtxt(argv[1], delimiter=',', skip_header=1,\
 		names=['size', 'mean', 'variance'])
 
-print "here it is:", data['size'], data['mean'], data['variance']
+print "here it is: (size, mean, variance)", \
+		data['size'], data['mean'], data['variance']
 
-#int_data = {'size': int(data['size']), 'mean': int(data['mean']), \
-#		'variance': int(data['variance'])}
+# assumes something like seq_hit_read_<stuff>.csv and would get you just seq_hit_read
+# also note that it assumes you have a directory structure like thing/WANT/thing...
+title = "_".join(argv[1].split(".")[0].split('/')[3].split("_complete_"))
 
 plt.figure()
-plt.errorbar(data['size'], data['mean'], yerr=data['variance'])
-# assumes something like seq_hit_read_<stuff>.csv and would get you just seq_hit_read
-#fig.title("_".join(argv[1].split(".")[0].split("_")[2:0]))
+plt.errorbar(data['size'], data['mean'], yerr=data['variance'], \
+		fmt='g^')
+plt.title(title)
+plt.xlabel('size [blocks]')
+plt.ylabel('average time for $size operations [ms]')
+plt.xscale('log')
 
-#ax = plt.add_subplot(111)
-ax = plt.gca()
-# assumes something like seq_hit_read_<stuff>.csv and would get you just seq_hit_read
-ax.set_title("_".join(argv[1].split(".")[0].split("_")[2:0]))
-ax.set_xlabel('size [blocks]')
-ax.set_ylabel('average time for $size operations')
-
-ax.plot()
+#print("cool title right? ", title)
 
 plt.savefig(argv[1].split(".")[0] + ".png")

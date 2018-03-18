@@ -44,12 +44,18 @@ for results in $(ls | grep '_results$'); do
         cut -d ' ' -f 2)
       variance_delete=$(cat $results/$test_type/$delete_results | grep variance | \
         cut -d ' ' -f 2)
-      echo "$size,$mean_put,$variance_put," >> \
-        $complete_put_results
-      echo "$size,$mean_get,$variance_get," >> \
-        $complete_delete_results
-      echo "$size,$mean_delete,$variance_delete," >> \
-        $complete_delete_results
+      if [[ $mean_put =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ $variance_put =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "$size,$mean_put,$variance_put," >> \
+          $complete_put_results
+      fi
+      if [[ $mean_get =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ $variance_get =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "$size,$mean_get,$variance_get," >> \
+          $complete_get_results
+      fi
+      if [[ $mean_delete =~ ^[0-9]+(\.[0-9]+)?$ ]] && [[ $variance_delete =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+        echo "$size,$mean_delete,$variance_delete," >> \
+          $complete_delete_results
+      fi
     done
   done
 done
