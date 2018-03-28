@@ -1,0 +1,162 @@
+\documentclass[twocolumn,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lipsum}                     % Dummytext
+\usepackage{hyperref}
+\usepackage{xargs}                      % Use more than one optional parameter in a new commands
+\usepackage[pdftex,dvipsnames]{xcolor}  % Coloured text etc.
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{tikz-qtree}
+\usepackage{tikz}
+\usepackage[linguistics]{forest}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}% filled box
+\newcommand*{\QEDB}{\hfill\ensuremath{\square}}% unfilled box
+
+% dem nice tables
+\usepackage[hmargin=2cm,top=4cm,headheight=65pt,footskip=65pt]{geometry}
+\usepackage{fmtcount} % for \ordinalnum
+\usepackage{array,multirow}
+\usepackage{tabularx}
+\usepackage{lastpage}
+
+
+% add a special collumn type
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+
+%header/footer stuff
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%note that if you do not do these blank ones, the package defaults to something
+%you may not want in your header or footer
+\lhead{CMPS 278}
+\chead{RocksBench Rebuttal}
+\rhead{\today}
+\lfoot{Isaak Cherdak}
+\cfoot{}
+\rfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\usepackage[english]{babel}
+\emergencystretch=1pt
+\usepackage[justification=centering]{caption}
+\graphicspath{{Pictures/} }
+
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+\newcommandx{\unsure}[2][1=]{\todo[linecolor=red,backgroundcolor=red!25,bordercolor=red,#1]{#2}}
+\newcommandx{\change}[2][1=]{\todo[linecolor=blue,backgroundcolor=blue!25,bordercolor=blue,#1]{#2}}
+\newcommandx{\info}[2][1=]{\todo[linecolor=OliveGreen,backgroundcolor=OliveGreen!25,bordercolor=OliveGreen,#1]{#2}}
+\newcommandx{\improvement}[2][1=]{\todo[linecolor=Plum,backgroundcolor=Plum!25,bordercolor=Plum,#1]{#2}}
+\newcommandx{\thiswillnotshow}[2][1=]{\todo[disable,#1]{#2}}
+
+%\usepackage{setspace}
+%\doublespacing
+
+\title{RocksBench Rebuttal\\CMPS 278}
+\author{Isaak Cherdak}
+%\date{} %blank date
+
+\begin{document}
+
+\maketitle
+
+\pagebreak
+
+\section*{Notation}
+
+\begin{center}
+  \begin{tabular}{ | l | l | }
+    \hline
+    Abbreviation & Expanded Phrase or meaning\\ \hline \hline
+    DBMS & Database Management System\\ \hline
+    SLA & Service Level Agreement\\ \hline
+    WBL & Write Behind Logging \\ \hline
+  \end{tabular}
+\end{center}
+
+\section{Overview}
+
+This document was created to attempt to address major concerns brought about by
+Professor Shel Finkelstein regarding my CMPS 278 course paper and presentation.
+
+\section{Paper/General}
+
+\subsection{Main goal (for Level A of course project) was to determine where
+  RocksDB is good; did I achieve that? What did I conclude? Were these the
+right experiments?}
+
+\subsection{Tests were confusing}
+
+\subsubsection{Why did I focus on average value for data.}
+
+\subsubsection{In most real applications, the key that is searched for is usually
+  found, yet I had much higher misses than usual because of the way data was
+generated.}
+
+\subsubsection{My data generation led to update not being meaningful, which is
+unfortunate.}
+
+
+\subsubsection{Did I consider range queries?}
+
+
+\subsection{Do you think that your results would be the same if you had more
+data and a larger system?}
+
+\subsubsection{How do you results compare with RocksDB tests by others?}
+
+
+\subsubsection{I agree with you that time for delete should not be that poor,
+  and I think that others have not had this problem.  Any idea why your delete
+was slow?}
+
+\subsection{Why did you show weird cases in presentation, when you had 72
+  different graphs?  Weren't you able to draw conclusions from "less weird"
+cases.}
+
+
+\subsection{Feels like RocksDB would be unusable in practice, given some of your
+results.  But it's definitely usable in practice, so what's going on?}
+
+\subsubsection{Futures make a lot of sense for RocksDB, but the most important
+  objective would be to have realistic tests on a well-configured environment
+  with meaningful conclusions, and I'm not sure that was achieved. What do you
+think?}
+
+\section{Presentation}
+
+As a side note, ASCAR is a company started by a recent PhD graduate of the SSRC,
+not to be confused by the numerous other things that it also apparently refers
+to.
+
+\subsection{Should get be faster when data isn't there?}
+
+%When data isn't there, you have to look in all levels (unless you have Bloom filters--did you?).  And if it is there, you can stop when you find it.
+
+\subsection{Operational issues of interest}
+
+\subsubsection{Ran for 4 hours on both computers, 32,768. Stuck on one step up.}
+
+\subsubsection{One core was pegged at 100\%, others at 20-30\%}
+
+\subsubsection{Home desktop was better with only cpu usage 10\%, but wasn’t that
+much faster}
+
+%probably because single-threaded. Is it possible (or desirable) to use RocksDB with multi-threading?
+
+\end{document}
