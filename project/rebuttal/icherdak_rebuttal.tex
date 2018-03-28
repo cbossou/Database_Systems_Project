@@ -1,4 +1,4 @@
-\documentclass[twocolumn,11pt]{article}
+\documentclass[11pt]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage{lipsum}                     % Dummytext
@@ -46,10 +46,10 @@
 \renewcommand{\footrulewidth}{0pt}
 
 \hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=cyan,
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=magenta,
+  urlcolor=cyan,
 }
 
 \usepackage[english]{babel}
@@ -77,18 +77,6 @@
 
 \pagebreak
 
-\section*{Notation}
-
-\begin{center}
-  \begin{tabular}{ | l | l | }
-    \hline
-    Abbreviation & Expanded Phrase or meaning\\ \hline \hline
-    DBMS & Database Management System\\ \hline
-    SLA & Service Level Agreement\\ \hline
-    WBL & Write Behind Logging \\ \hline
-  \end{tabular}
-\end{center}
-
 \section{Overview}
 
 This document was created to attempt to address major concerns brought about by
@@ -100,43 +88,156 @@ Professor Shel Finkelstein regarding my CMPS 278 course paper and presentation.
   RocksDB is good; did I achieve that? What did I conclude? Were these the
 right experiments?}
 
+I believe the degree that I achieved Level A is limited. More specifically, I
+believe that the graphs I generated and description of the tests behind them
+alone could provide useful insight into how the system works. However,
+unfortunately I had a very difficult time coming up with a way to attribute a
+given set of graphs to some sort of conclusion. This was mostly due to time
+constraints as I regrettably spent way too much time obsessing on the design of
+the system, the kinds of tests that would be run, and especially the
+implementation and scripts. As such, the graphs that I ended up mentioning
+directly were the ones that I analyzed, and the only ones that I managed to
+analyze were those that really stood out. However, I would like to bring up one
+thing that my system did that RocksDB didn't do at all: Trend graphs. By Trend
+Graphs I am referring to graphs that show some sort of progression over multiple
+data sizes; In other words, a trend. The RocksDB paper only provided the final
+transaction/min while I provide trend graphs for a number of different
+situations. This was also a large motivation for the choices I made to generate
+the kinds of graphs that I did.
+
+Overall the trend of the graphs are what I expected for an LSM tree based
+system. What I really concluded however, was that there are a large number of
+features in RocksDB and I believe that only Facebook makes complete use of them
+because of the large learning curve for their existence alone but especially the
+scope of their functionality and usefulness. The more time I spent investigating
+the features of RocksDB, the more I realized how difficult it would be to
+provide a comprehensive testing suite. However, based off the structure that I
+designed and implemented, adding additional functionalities for testing would
+not be anywhere near as difficult as these tests were for me: only the choices
+behind which to test would need to be made. Lets consider transactions as an
+example. For transactions, you would have to call the start transaction function
+first, then perform any number of operations on the transaction, and finally
+call the end transaction function. Observe that all that would really be
+required here is the creation of a new function that does this followed by the
+addition in my main file of the call to this test. The only real issue is that
+based off the scripts available, additional tests would need to generate insert,
+get, and delete results in millisecond latency. Fortunately, the program itself
+will generate any number of trial results CSVs.
+
+The experiments I performed were made as educated guesses. I tried to vary as
+many things as possible while only using the simplest operations available
+because as mentioned before, trying to come up with more complicated features to
+test would result in an endless void of additional concerns. After having really
+thought about my results for a while I realized an additional parameter that
+should really have been controlled or even varied as a test: temporal locality.
+Tests that were larger would especially suffer in get() and delete() performance
+because the data is considered in order from first to last for every operation.
+This means that by the time insert() is finished, the most recent data is the
+last things that were inserted, but get() will start by looking at the first
+sets of data and hence have to look into lower and lower levels of the LSM tree
+to retrieve information.
+
 \subsection{Tests were confusing}
 
 \subsubsection{Why did I focus on average value for data.}
 
-\subsubsection{In most real applications, the key that is searched for is usually
-  found, yet I had much higher misses than usual because of the way data was
-generated.}
+This was simply the result of my project driving direction on its own. I
+realized at some point that just generating random data would not be a good idea
+because that data could end up being nearly the same, really all over the
+place, or, what was of biggest concern to me, resulting in totally
+non-reproducible results. To prevent this from happening, I chose a Poisson
+distribution. However, this distribution requires an average to be specified.
+After thinking about it for a while, I decided that it would be best, both as a
+standard for data generation functions and for spatial locality, to make
+sequential data be generated around some pre-specified average as well. I will
+also elaborate on spacial locality. If I was to generate sequential data that
+was offset significantly from the random data, I would be concerned that it may
+result in different results at some point. In truth this design decision worked
+out very well when I was implementing high miss rate tests because I could
+simply multiply the averages by some number (100 in this case) to generate
+vastly different results for get() to use.
 
-\subsubsection{My data generation led to update not being meaningful, which is
+\subsubsection{In most real applications, the key that is searched for is
+  usually found, yet I had much higher misses than usual because of the way data
+was generated.}
+
+I tested for 100\% hit rate and near 0\% hit rate (that was the difference
+between the hit and miss tests respectively). I am unaware of what the ideal hit
+rate for testing may be but if it is near 100\%, then I have mostly addressed
+this. As mentioned earlier, I am beginning to believe that temporal locality is
+more important in general for performance than the hit rate of data.
+
+\subsubsection{My data generation led to update() not being meaningful, which is
 unfortunate.}
 
+This was the consequence of having random data intermixed with some of the
+tests. I didn't want to have some tests include update but others not include
+it. Because of the random data, multiple pieces of data could have been exactly
+the same. One way to still generate random data the way I did but guarantee that
+all data is unique is to simply use an average that is orders of magnitude
+greater than the data size and only insert random numbers that aren't already
+being utilized for a given set. If only I had thought of this idea earlier,
+maybe this would already be implemented, but Murphy's Law always must apply.
 
 \subsubsection{Did I consider range queries?}
 
+Unfortunately I didn't. I used the
+\href{https://github.com/facebook/rocksdb/blob/master/examples/transaction_example.cc}
+{transaction example} from RocksDB as a starting point. The next thing I was
+going to consider to test was basic transactions which were implemented in my
+RocksUtil code base but not actually used in any tests.
 
 \subsection{Do you think that your results would be the same if you had more
 data and a larger system?}
 
-\subsubsection{How do you results compare with RocksDB tests by others?}
+I am not sure what is meant by this question. I could have generated more data
+had I been even more careful about the limitations of my system: remember that I
+only stopped generating results because my system got stuck. I suppose having
+data that is more representative of what various companies may receive would be
+helpful as well because then any conclusions made about results could have much
+more tangible value. Regarding the size of my system, I don't think that I made
+complete use of it. I didn't tweak parameters for things like maximum space
+usage, size of in-memory tree, etc. which would have used more space resources
+but definitely improved performance.
 
+\subsubsection{Time for delete should not be that poor and other tests didn't
+  seem to have this problem. Any idea why delete was slow here?}
 
-\subsubsection{I agree with you that time for delete should not be that poor,
-  and I think that others have not had this problem.  Any idea why your delete
-was slow?}
+There is nothing that stands out in my code that would explain if this is a
+mistake on my part. Maybe it is not used often in general use cases so it is
+generally not of major concern or maybe it would be of similar latency to update
+operations. I do not yet have the data to make a conclusion on this.
 
-\subsection{Why did you show weird cases in presentation, when you had 72
-  different graphs?  Weren't you able to draw conclusions from "less weird"
-cases.}
+\subsection{Why were only weird cases shown in presentation, when there were 72
+  different graphs? Weren't there are any conclusions to be drawn about other
+graphs?}
 
+As mentioned before, this was an issue with time constraints and correlating
+information. To make best use of time I focused on ones that I thought were most
+interesting and those tended to only be the weird cases.
 
 \subsection{Feels like RocksDB would be unusable in practice, given some of your
-results.  But it's definitely usable in practice, so what's going on?}
+results. However, it definitely is usable in practice, so what's going on?}
 
-\subsubsection{Futures make a lot of sense for RocksDB, but the most important
-  objective would be to have realistic tests on a well-configured environment
-  with meaningful conclusions, and I'm not sure that was achieved. What do you
-think?}
+As mentioned before, certain aspects weren't considered. The most important
+things that should've been but weren't tested include temporal locality and
+range queries. temporal locality is probably much better in practice but
+regardless, it wasn't controlled at all in my tests because I hadn't yet
+considered it as something to vary. Finally, range queries are very likely to be
+used as it's faster to internally buffer a bunch of data and shoot it out as one
+query than it is to insert all of the data with individual get() operations.
+
+\subsubsection{Future work makes a lot of sense for RocksDB, but the most
+  important objective would be to have realistic tests on a well-configured
+  environment with meaningful conclusions, but it's not clear that this was
+achieved}
+
+I hate to sound like a broken record but time was a very serious constraint
+here. I think that I have done a decent job providing a different perspective to
+results than has been done before to my knowledge. Unfortunately, as has been
+addressed before, my analysis of the results is lacking. it has been very
+difficult for me to draw more than general conclusions and a few specifics such
+as in weird cases, no matter how many hours I looked over them all.
 
 \section{Presentation}
 
@@ -144,19 +245,39 @@ As a side note, ASCAR is a company started by a recent PhD graduate of the SSRC,
 not to be confused by the numerous other things that it also apparently refers
 to.
 
-\subsection{Should get be faster when data isn't there?}
+\subsection{Should get() be faster when data isn't there?}
 
-%When data isn't there, you have to look in all levels (unless you have Bloom filters--did you?).  And if it is there, you can stop when you find it.
+I would imagine that it would be faster because there should be bloom filters at
+every level except the last according to the RocksDB paper. I am unsure if the
+default settings change this. This also would especially differ in latency
+depending on whether you have an SSD or HDD but both my systems had SSDs for
+boot drives.
 
 \subsection{Operational issues of interest}
 
-\subsubsection{Ran for 4 hours on both computers, 32,768. Stuck on one step up.}
+\subsubsection{Ran for 4 hours on both computers, up until size 32,768. Stuck on
+one step up.}
 
-\subsubsection{One core was pegged at 100\%, others at 20-30\%}
+it's because I used a uint16\_t as an iteration variable. Infinite loop
+resulted.
 
-\subsubsection{Home desktop was better with only cpu usage 10\%, but wasn’t that
-much faster}
+\subsubsection{For Lab PC one core was pegged at 100\%, others at 20-30\%}
 
-%probably because single-threaded. Is it possible (or desirable) to use RocksDB with multi-threading?
+Everyone I have discussed with says this is because RocksDB is functioning as
+single threaded. Indeed by default, RocksDB performs most operations in a single
+thread. I don't think operating in multithreaded mode would generally be in best
+interest because the bottleneck is I/O and adding thread synchronization
+overhead would only add to performance problems.
+
+\subsubsection{Home PC was better with cpu usage 10\%, but wasn’t much faster}
+
+I didn't see a thread breakdown for this computer but I can't imagine that
+this is due to single threaded performance. I imagine this is simply due to the
+limit of speed for the SSD compared to the CPU. On the other hand, the other
+computer had a processor that was from 2012 or so and a motherboard from
+probably around the same time which further adds to bottlenecks on it's side.
+Still interesting to me that there were certain operations that were basically
+the same latency on both but also others that were some constant multiple in
+latency difference.
 
 \end{document}
